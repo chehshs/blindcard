@@ -27,7 +27,29 @@ for (const [cells, expected] of cases) {
   }
 }
 
-if (failed) {
+function firstPageRows(rows, perPage) {
+  const n = Number(perPage) || 1;
+  if (!rows.length) return [];
+  const firstKey = String(rows[0].num || "").includes("-")
+    ? String(rows[0].num).trim().split("-", 2)[0].trim()
+    : "";
+  const group = [];
+  for (let i = 0; i < rows.length; i++) {
+    const raw = String(rows[i].num || "").trim();
+    const key = raw.includes("-") ? raw.split("-", 2)[0].trim() : "";
+    if (key !== firstKey) break;
+    group.push(rows[i]);
+  }
+  return group.slice(0, n);
+}
+
+const preview = firstPageRows(
+  [{ num: "1-1" }, { num: "1-2" }, { num: "2-1" }],
+  5
+);
+if (preview.length !== 2 || preview[1].num !== "1-2") {
+  console.error("FAIL firstPageRows", preview);
   process.exit(1);
 }
-console.log("ok", cases.length, "header cases");
+console.log("ok firstPageRows");
+

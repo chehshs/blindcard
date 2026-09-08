@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja" class="page-guide">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方 - BlindCard</title>
+  <link rel="icon" href="/static/blindcard-maker.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="min-h-screen bg-mint-wash text-mint-ink antialiased">
+  <header class="sticky top-3 z-20 mx-3 mb-3 mt-3 flex h-16 items-center justify-between rounded-2xl border border-mint-line bg-white/90 px-4 shadow-xs backdrop-blur-md sm:mx-4 sm:px-6">
+    <a href="/" class="flex min-w-0 items-center gap-3">
+      <img src="/static/blindcard-maker.svg" alt="BlindCardMaker" class="h-6 w-auto max-w-[10rem] sm:h-7 sm:max-w-[14rem]">
+    </a>
+    <a href="/" class="inline-flex items-center rounded-xl bg-mint px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-mint-hover">編集画面へ</a>
+  </header>
+
+  <div class="mx-auto flex max-w-5xl gap-10 px-4 py-8 sm:px-6 lg:py-10">
+    <nav class="hidden w-52 shrink-0 lg:block" aria-label="目次">
+      <div class="sticky top-20 space-y-1 text-sm">
+        <p class="px-2 pb-2 text-[11px] font-bold uppercase tracking-wider text-mint-muted">目次</p>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#overview">できること</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#flow">基本の流れ</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#input">問題の入れ方</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#csv">CSVの書き方</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#settings">プリント設定</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#paging">番号とページ</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#redsheet">赤シート</a>
+        <a class="block rounded-md px-2 py-1.5 text-mint-muted hover:bg-white hover:text-mint-ink" href="#troubleshoot">うまくいかないとき</a>
+      </div>
+    </nav>
+
+    <article class="min-w-0 flex-1 pb-16">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-mint-muted">Guide</p>
+      <h1 class="mt-1 text-2xl font-bold tracking-tight text-mint-ink">使い方</h1>
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-mint-muted">左に問題、右に解答のプリントをPDFにします。解答は標準のオレンジなどの色で印字するので、赤シートをかぶせると隠して覚えられます。</p>
+
+      <nav class="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm lg:hidden" aria-label="目次">
+        <a class="text-mint-muted hover:text-mint-ink" href="#overview">できること</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#flow">基本の流れ</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#input">問題の入れ方</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#csv">CSV</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#settings">設定</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#paging">ページ</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#redsheet">赤シート</a>
+        <a class="text-mint-muted hover:text-mint-ink" href="#troubleshoot">困ったとき</a>
+      </nav>
+
+      <section id="overview" class="scroll-mt-24 mt-10">
+        <h2 class="text-sm font-bold text-mint-ink">できること</h2>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-mint-line bg-white p-5">
+            <p class="text-sm leading-relaxed text-mint-muted">1行が1問です。左が問題、右が解答、その下が備考です。用紙は A6 / A5 / A4、1ページの行数は 3 / 5 / 8 / 10 から選べます。</p>
+            <div class="preview-stage mt-4 rounded-lg">
+              <div class="preview-paper" style="--preview-rows: 3">
+                <div class="preview-header">
+                  <span class="preview-title">漢字テスト - NO.1</span>
+                  <span class="preview-page">PAGE: 1</span>
+                </div>
+                <div class="preview-rows">
+                  <div class="preview-row">
+                    <div class="preview-q">
+                      <span class="preview-num">1-1</span>
+                      <span class="preview-qtext">絶好のキカイ</span>
+                    </div>
+                    <div class="preview-split"></div>
+                    <div class="preview-a">
+                      <span class="preview-atext" style="color:#FFA500">機会</span>
+                      <span class="preview-note">[類] 好機</span>
+                    </div>
+                  </div>
+                  <div class="preview-row">
+                    <div class="preview-q">
+                      <span class="preview-num">1-2</span>
+                      <span class="preview-qtext">宇宙のシンリ</span>
+                    </div>
+                    <div class="preview-split"></div>
+                    <div class="preview-a">
+                      <span class="preview-atext" style="color:#FFA500">真理</span>
+                    </div>
+                  </div>
+                  <div class="preview-row">
+                    <div class="preview-q">
+                      <span class="preview-num">1-3</span>
+                      <span class="preview-qtext">テンネンの水</span>
+                    </div>
+                    <div class="preview-split"></div>
+                    <div class="preview-a">
+                      <span class="preview-atext" style="color:#FFA500">天然</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="preview-footer">© BlindCardMaker</div>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="rounded-xl border border-mint-line bg-white p-4">
+              <p class="text-xs font-semibold text-mint-ink">手入力でもCSVでも</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">表に直接書くか、Excel / スプレッドシートから書き出したCSVを読み込めます。</p>
+            </div>
+            <div class="rounded-xl border border-mint-line bg-white p-4">
+              <p class="text-xs font-semibold text-mint-ink">プレビューしてからPDF</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">1ページ目の見え方を確認してから書き出せます。一度に2000件まで。</p>
+            </div>
+            <div class="rounded-xl border border-mint-line bg-white p-4">
+              <p class="text-xs font-semibold text-mint-ink">赤シートで隠せる</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">解答は標準のオレンジなどの色で印字します。カラー印刷してシートを重ねると、問題だけが残ります。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="flow" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">基本の流れ</h2>
+        <ol class="mt-4 space-y-3">
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">1</span>
+            <div>
+              <p class="text-sm font-semibold text-mint-ink">問題を入れる</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">「行追加」で1問ずつ書くか、「CSVを読み込む」でまとめて取り込みます。表の上にCSVをドロップしても読み込めます。</p>
+            </div>
+          </li>
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">2</span>
+            <div>
+              <p class="text-sm font-semibold text-mint-ink">用紙と見た目を選ぶ</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">左のプリント設定で用紙サイズ、行数、タイトル、番号の表記、解答色を決めます。狭い画面では左上のメニューから開けます。</p>
+            </div>
+          </li>
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">3</span>
+            <div>
+              <p class="text-sm font-semibold text-mint-ink">プレビューで確認する</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">右上の「プレビュー」で1ページ目のレイアウトを見ます。問題か解答が1件以上あると使えます。</p>
+            </div>
+          </li>
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">4</span>
+            <div>
+              <p class="text-sm font-semibold text-mint-ink">PDFを発行して印刷する</p>
+              <p class="mt-1 text-xs leading-relaxed text-mint-muted">「PDFを発行する」でダウンロードされます。赤シートで使うときはカラー印刷してください。</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section id="input" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">問題の入れ方</h2>
+        <div class="mt-4 overflow-x-auto rounded-xl border border-mint-line bg-white">
+          <table class="w-full min-w-[28rem] text-left text-xs">
+            <thead class="border-b border-mint-line bg-mint-wash font-medium text-mint-muted">
+              <tr>
+                <th class="px-4 py-2.5">列</th>
+                <th class="px-4 py-2.5">画面上の名前</th>
+                <th class="px-4 py-2.5">印刷される場所</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-mint-line text-mint-muted">
+              <tr>
+                <td class="px-4 py-2.5 font-mono text-mint-muted">1</td>
+                <td class="px-4 py-2.5">No.</td>
+                <td class="px-4 py-2.5">問題の左上の番号</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono text-mint-muted">2</td>
+                <td class="px-4 py-2.5">Question</td>
+                <td class="px-4 py-2.5">左半分（黒）</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono text-mint-muted">3</td>
+                <td class="px-4 py-2.5">Answer</td>
+                <td class="px-4 py-2.5">右半分（解答色）</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono text-mint-muted">4</td>
+                <td class="px-4 py-2.5">Notes</td>
+                <td class="px-4 py-2.5">解答の下（任意）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="mt-4 space-y-2 text-sm leading-relaxed text-mint-muted">
+          <li>「行追加」で末尾に1行足します。番号は直前の行から自動で続きを付けます。</li>
+          <li>「CSV保存」で今の表をUTF-8のCSVとして書き出せます。あとから同じファイルを読み込めます。</li>
+          <li>「クリア」は表の中身をすべて消します。元には戻せません。</li>
+        </ul>
+      </section>
+
+      <section id="csv" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">CSVの書き方</h2>
+        <p class="mt-3 text-sm leading-relaxed text-mint-muted">4列です。1行目が見出しなら自動で読み飛ばします。</p>
+        <pre class="mt-4 overflow-x-auto rounded-xl bg-mint p-4 font-mono text-[11px] leading-relaxed text-white">番号,問題,解答,備考
+1-1,絶好のキカイ,機会,[類]好機
+1-2,宇宙のシンリ,真理,
+2-1,植物のヨウブン,養分,</pre>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">見出しとして認識される語</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">番号 / 問題 / 解答 / 備考、または num / question / answer / note</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">文字コード</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">UTF-8（ExcelのBOM付きも可）と Shift_JIS の両方に対応しています。</p>
+          </div>
+        </div>
+        <p class="mt-4 text-sm leading-relaxed text-mint-muted">見出しが「番号ID」「例文」のような独自の名前だと、1行目もデータとして取り込まれます。表で直せば問題ありません。</p>
+      </section>
+
+      <section id="settings" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">プリント設定</h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">用紙サイズ</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">A6（105×148 mm）が標準です。A5・A4は同じレイアウトを拡大します。</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">1ページの行数</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">3 / 5 / 8 / 10。多いほど文字は小さくなります。</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">ヘッダータイトル</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">ページ上部に「タイトル - NO.1」と出ます。空欄なら BlindCardMaker になります。80文字まで。</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">番号の表記</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">「1-1」は入力した番号のまま。「1. 2. 3.」はそのページ内の連番です。</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">チェック欄</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">番号の横に小さな四角を付けます。覚えた問題に印を付ける用途です。</p>
+          </div>
+          <div class="rounded-xl border border-mint-line bg-white p-4">
+            <p class="text-xs font-semibold text-mint-ink">解答色</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">赤シート用です。標準はオレンジで、赤シートに隠れやすい色です。隠れにくいときは赤に変えてください。紫はほぼ残ります。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="paging" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">番号とページの分かれ方</h2>
+        <p class="mt-3 text-sm leading-relaxed text-mint-muted">番号にハイフンがあるときだけ、ハイフンの前が「まとまり」になります。まとまりが変わると新しいページから始まります。</p>
+        <div class="mt-4 overflow-x-auto rounded-xl border border-mint-line bg-white">
+          <table class="w-full min-w-[28rem] text-left text-xs">
+            <thead class="border-b border-mint-line bg-mint-wash font-medium text-mint-muted">
+              <tr>
+                <th class="px-4 py-2.5">番号の例</th>
+                <th class="px-4 py-2.5">動き</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-mint-line text-mint-muted">
+              <tr>
+                <td class="px-4 py-2.5 font-mono">1-1, 1-2, 1-3</td>
+                <td class="px-4 py-2.5">同じまとまり。空いた行を埋めて続けて印刷します。</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono">1-5 の次が 2-1</td>
+                <td class="px-4 py-2.5">まとまりが変わるので、2-1 から新しいページです。</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono">1, 2, 3 …</td>
+                <td class="px-4 py-2.5">連番は同じまとまりのまま詰めて印刷します。</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-2.5 font-mono">番号なし</td>
+                <td class="px-4 py-2.5">連番と同じく、ひと続きのページになります。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-sm leading-relaxed text-mint-muted">画面上の「記入 N 件 · 約 M ページ」は、このルールで見積もったページ数です。</p>
+      </section>
+
+      <section id="redsheet" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">赤シートの使い方</h2>
+        <ol class="mt-4 space-y-3">
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">1</span>
+            <p class="pt-0.5 text-sm leading-relaxed text-mint-muted">カラーで印刷します。白黒だと解答が隠せません。</p>
+          </li>
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">2</span>
+            <p class="pt-0.5 text-sm leading-relaxed text-mint-muted">右半分（色の付いた解答）に赤シートを重ねます。問題だけが残ります。</p>
+          </li>
+          <li class="flex gap-3 rounded-xl border border-mint-line bg-white p-4">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">3</span>
+            <p class="pt-0.5 text-sm leading-relaxed text-mint-muted">答えたらシートをずらして答え合わせします。チェック欄を付けていれば、覚えた問題に印を付けられます。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="troubleshoot" class="scroll-mt-24 mt-12">
+        <h2 class="text-sm font-bold text-mint-ink">うまくいかないとき</h2>
+        <div class="mt-4 divide-y divide-mint-line overflow-hidden rounded-xl border border-mint-line bg-white text-sm">
+          <div class="px-4 py-3">
+            <p class="font-semibold text-mint-ink">PDFを発行するボタンが押せない</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">問題または解答が1件以上必要です。番号だけの行では書き出せません。</p>
+          </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-mint-ink">CSVの1行目が消えた</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">見出し行と判定されると読み飛ばされます。1列目に数字がある行はデータとして残します。</p>
+          </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-mint-ink">ページが分かれすぎる</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted"><span class="font-mono">1-1</span> と <span class="font-mono">2-1</span> のようにハイフンの前が変わると、そこで改ページします。続けて印刷したいときは連番にするか、同じ接頭辞にしてください。</p>
+          </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-mint-ink">長い文が途中で切れる</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">1行に収まるよう文字を小さくし、それでも入らなければ末尾を省略します。行数を減らすと入りやすくなります。</p>
+          </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-mint-ink">2000件を超えると言われる</p>
+            <p class="mt-1 text-xs leading-relaxed text-mint-muted">一度に出力できる上限です。CSVを分割して複数回書き出してください。</p>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</body>
+</html>

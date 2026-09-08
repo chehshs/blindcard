@@ -1,10 +1,10 @@
-const { createApp, ref, computed, watch } = Vue;
+const { createApp, ref, computed, watch, onMounted, onUnmounted, nextTick } = Vue;
 
 const COLOR_PRESETS = [
   { name: "オレンジ", value: "#FFA500" },
+  { name: "ローズ", value: "#F43F5E" },
   { name: "赤", value: "#EF4444" },
-  { name: "ローズ", value: "#EC4899" },
-  { name: "マゼンタ", value: "#A855F7" },
+  { name: "紫", value: "#A855F7" },
 ];
 
 function uid() {
@@ -19,7 +19,7 @@ function emptyRow(num) {
 }
 
 function defaultRows() {
-  return Array.from({ length: 5 }, (_, i) => emptyRow("1-" + (i + 1)));
+  return [];
 }
 
 function parseCsv(text) {
@@ -87,6 +87,18 @@ function sectionLabel(num) {
   return sectionKey(num) || "1";
 }
 
+function firstPageRows(rows, perPage) {
+  const n = Number(perPage) || 1;
+  if (!rows.length) return [];
+  const firstKey = sectionKey(rows[0].num);
+  const group = [];
+  for (let i = 0; i < rows.length; i++) {
+    if (sectionKey(rows[i].num) !== firstKey) break;
+    group.push(rows[i]);
+  }
+  return group.slice(0, n);
+}
+
 function countEstimatedPages(rows, perPage) {
   const n = Number(perPage) || 1;
   if (!rows.length) return 0;
@@ -151,7 +163,12 @@ createApp({
     const dragOver = ref(false);
     const generating = ref(false);
     const showClearModal = ref(false);
+    const showPreview = ref(false);
+    const showSettings = ref(false);
     const fileInput = ref(null);
+    const settingsDialog = ref(null);
+    const previewDialog = ref(null);
+    const clearDialog = ref(null);
     const alertState = ref(null);
     let alertTimer = null;
 
@@ -169,7 +186,7 @@ createApp({
 
     const previewRows = computed(() => {
       const perPage = Number(rowsPerPage.value);
-      const source = filledRows.value.slice(0, perPage);
+      const source = firstPageRows(filledRows.value, perPage);
       const padded = source.map((row) => ({ ...row }));
       while (padded.length < perPage) {
         padded.push(emptyRow(""));
@@ -180,11 +197,13 @@ createApp({
     const previewSection = computed(() => sectionLabel((filledRows.value[0] || {}).num));
 
     const previewTitle = computed(() => {
-      const heading = String(notebookTitle.value || "").trim() || "ANKI NOTE";
+      const heading = String(notebookTitle.value || "").trim() || "BlindCardMaker";
       return heading + " - NO." + previewSection.value;
     });
 
     const colorHex = computed(() => String(kanjiColor.value || "#FFA500").toUpperCase());
+
+    const canExport = computed(() => contentRows.value.length > 0);
 
     function formatDisplayNum(row, index) {
       if (numberStyle.value === "dot") {
@@ -210,11 +229,28 @@ createApp({
       rows.value.push(emptyRow(nextNum(rows.value)));
     }
 
+    function addFirstRow() {
+      rows.value = [emptyRow("1-1")];
+    }
+
     function removeRow(id) {
       rows.value = rows.value.filter((row) => row.id !== id);
-      if (!rows.value.length) {
-        rows.value = [emptyRow("1-1")];
+    }
+
+    function openPreview() {
+      if (!canExport.value) {
+        showAlert("問題または解答を1件以上入力してください。", "error");
+        return;
       }
+      showSettings.value = false;
+      showPreview.value = true;
+    }
+
+    function onGlobalKeydown(event) {
+      if (event.key !== "Escape") return;
+      showPreview.value = false;
+      showSettings.value = false;
+      showClearModal.value = false;
     }
 
     function resetRows() {
@@ -391,6 +427,32 @@ createApp({
       }
     });
 
+    watch(showSettings, async (open) => {
+      if (open) {
+        await nextTick();
+        if (settingsDialog.value) settingsDialog.value.focus();
+      }
+    });
+    watch(showPreview, async (open) => {
+      if (open) {
+        await nextTick();
+        if (previewDialog.value) previewDialog.value.focus();
+      }
+    });
+    watch(showClearModal, async (open) => {
+      if (open) {
+        await nextTick();
+        if (clearDialog.value) clearDialog.value.focus();
+      }
+    });
+
+    onMounted(() => {
+      window.addEventListener("keydown", onGlobalKeydown);
+    });
+    onUnmounted(() => {
+      window.removeEventListener("keydown", onGlobalKeydown);
+    });
+
     return {
       COLOR_PRESETS,
       paperSize,
@@ -404,7 +466,13 @@ createApp({
       dragOver,
       generating,
       showClearModal,
+      showPreview,
+      showSettings,
+      canExport,
       fileInput,
+      settingsDialog,
+      previewDialog,
+      clearDialog,
       alertState,
       filledRows,
       contentRows,
@@ -415,6 +483,8 @@ createApp({
       colorHex,
       formatDisplayNum,
       addRow,
+      addFirstRow,
+      openPreview,
       removeRow,
       resetRows,
       openFilePicker,

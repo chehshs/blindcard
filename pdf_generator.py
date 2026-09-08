@@ -28,13 +28,13 @@ HEX_COLOR_RE = re.compile(r"^#([0-9A-Fa-f]{6})$")
 MAX_ROWS = 2000
 MAX_FIELD_LEN = 2000
 MAX_TITLE_LEN = 80
-DEFAULT_TITLE = "ANKI NOTE"
+DEFAULT_TITLE = "BlindCardMaker"
 FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
 EMBEDDED_FONT_PATH = os.path.join(FONT_DIR, "ipaexm.ttf")
 CID_FONT_NAME = "HeiseiMin-W3"
 EMBEDDED_FONT_NAME = "AnkiMincho"
 FONT_NAME = CID_FONT_NAME
-COPYRIGHT_TEXT = "© ANKI NOTE MAKER"
+COPYRIGHT_TEXT = "© BlindCardMaker"
 PLAIN_SECTION_KEY = ""
 ROW_TEXT_HEIGHT_RATIO = 0.9
 

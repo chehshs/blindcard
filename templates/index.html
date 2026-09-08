@@ -1,241 +1,341 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="page-editor">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>暗記名人 - ANKI NOTE MAKER</title>
+  <title>BlindCard</title>
+  <link rel="icon" href="/static/blindcard-maker.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css">
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
-  <div id="app" class="min-h-screen pb-12" v-cloak>
-    <header class="sticky top-0 z-10 border-b border-slate-200 bg-white">
-      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <div class="flex items-center gap-3">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-base font-bold text-white">暗</div>
-          <div>
-            <h1 class="text-base font-bold leading-tight text-slate-900">暗記名人</h1>
-            <p class="font-mono text-[10px] uppercase tracking-wider text-slate-400">ANKI NOTE MAKER</p>
-          </div>
-        </div>
-        <div class="hidden items-center gap-3 sm:flex">
-          <button type="button" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50" @click="downloadCsv">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8 13h8v1.5H8zm0 3h5v1.5H8z"/></svg>CSV保存
-          </button>
-          <button type="button" class="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60" :disabled="generating" @click="generatePdf">
-            <svg v-if="generating" class="icon icon-spin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10h-2.2A7.8 7.8 0 1 1 12 4.2z"/></svg>
-            <svg v-else class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8.5 12.2h2.2c1.3 0 2.1.7 2.1 1.7 0 .7-.4 1.2-1 1.4.7.2 1.2.8 1.2 1.6 0 1.2-1 2-2.4 2H8.5zm1.4 1.2v1.3h.7c.5 0 .8-.2.8-.6s-.3-.7-.8-.7zm0 2.4v1.5h.9c.6 0 .9-.3.9-.8s-.4-.7-1-.7z"/></svg>
-            [[ generating ? '生成中…' : 'PDFを発行する' ]]
-          </button>
-        </div>
+<body class="page-editor h-screen overflow-hidden bg-mint-wash text-mint-ink antialiased">
+  <div id="app" class="flex h-screen flex-col" v-cloak>
+    <header class="sticky top-3 z-20 mx-3 mb-3 mt-3 flex h-16 shrink-0 items-center justify-between rounded-2xl border border-mint-line bg-white/90 px-4 shadow-xs backdrop-blur-md sm:mx-4 sm:px-6">
+      <div class="flex min-w-0 items-center gap-3">
+        <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash lg:hidden" @click="showSettings = true" aria-label="プリント設定">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v1.8H4zm0 5.1h16v1.8H4zM4 16.2h16V18H4z"/></svg>
+        </button>
+        <a href="/" class="flex min-w-0 items-center gap-3">
+          <img src="/static/blindcard-maker.svg" alt="BlindCardMaker" class="h-6 w-auto max-w-[10rem] sm:h-7 sm:max-w-[14rem]">
+        </a>
+      </div>
+      <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <a href="/guide" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash hover:text-mint-ink sm:hidden" aria-label="使い方" title="使い方">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 14.6a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zm1.3-8.4c0 1.5-1 2.1-1.7 2.6-.6.4-.8.6-.8 1.2v.6h-1.6v-.7c0-1.2.8-1.9 1.6-2.4.6-.4 1-.7 1-1.3 0-.6-.4-1-1.1-1-.8 0-1.2.4-1.4 1l-1.5-.6C8.2 6.6 9.4 5.4 11.3 5.4c1.8 0 3 1.1 3 2.8z"/></svg>
+        </a>
+        <a href="/guide" class="hidden items-center rounded-md px-2.5 py-1.5 text-xs font-medium text-mint-muted hover:bg-mint-wash hover:text-mint-ink sm:inline-flex">使い方</a>
+        <button type="button" class="hidden items-center gap-1.5 rounded-xl border border-mint-line bg-white px-3 py-2 text-xs font-medium text-mint-ink hover:bg-mint-wash sm:inline-flex" @click="openFilePicker">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8 13h8v1.5H8zm0 3h5v1.5H8z"/></svg>CSVを読み込む
+        </button>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl border border-mint-line bg-white px-3 py-2 text-xs font-medium text-mint-ink hover:bg-mint-wash disabled:cursor-not-allowed disabled:opacity-40" :disabled="!canExport" @click="openPreview" title="問題を1件以上入力するとプレビューできます">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5 0 9.3 3.1 11 7.5C21.3 16.9 17 20 12 20S2.7 16.9 1 12.5C2.7 8.1 7 5 12 5zm0 2.2A7.5 7.5 0 0 0 4.1 12.5 7.5 7.5 0 0 0 12 16.8a7.5 7.5 0 0 0 7.9-4.3A7.5 7.5 0 0 0 12 7.2zm0 2.3a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>
+          <span class="hidden sm:inline">プレビュー</span>
+        </button>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-mint px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-mint-hover disabled:cursor-not-allowed disabled:bg-mint-line disabled:text-mint-muted disabled:shadow-none" :disabled="!canExport || generating" @click="generatePdf">
+          <svg v-if="generating" class="icon icon-spin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10h-2.2A7.8 7.8 0 1 1 12 4.2z"/></svg>
+          <svg v-else class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8.5 12.2h2.2c1.3 0 2.1.7 2.1 1.7 0 .7-.4 1.2-1 1.4.7.2 1.2.8 1.2 1.6 0 1.2-1 2-2.4 2H8.5zm1.4 1.2v1.3h.7c.5 0 .8-.2.8-.6s-.3-.7-.8-.7zm0 2.4v1.5h.9c.6 0 .9-.3.9-.8s-.4-.7-1-.7z"/></svg>
+          <span class="hidden sm:inline">[[ generating ? '生成中…' : 'PDFを発行する' ]]</span>
+          <span class="sm:hidden">[[ generating ? '…' : 'PDF' ]]</span>
+        </button>
       </div>
     </header>
 
-    <main class="editor-scroll mx-auto max-w-6xl space-y-6 px-6 pt-8">
-      <div class="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-end">
-        <div>
-          <h2 class="text-xl font-bold text-slate-900">表に書く。赤シートで消す。</h2>
-          <p class="mt-1 text-xs text-slate-500">暗記カード用PDFを自動生成。直感的に編集してそのまま印刷できます。</p>
+    <div class="flex min-h-0 flex-1 gap-3 px-3 pb-3 sm:gap-4 sm:px-4 sm:pb-4" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
+      <aside class="hidden w-72 shrink-0 space-y-5 overflow-y-auto rounded-2xl border border-mint-line bg-white p-5 shadow-xs lg:block">
+        <div class="settings-panel">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-mint-muted">プリント設定</h2>
+          <p class="mt-1 text-[11px] text-mint-muted">用紙と印刷の見え方</p>
+
+          <div class="mt-4 space-y-1">
+            <label class="block text-xs font-semibold text-mint-ink">用紙サイズ</label>
+            <div class="grid grid-cols-3 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
+            </div>
+            <p class="text-[11px] text-mint-muted">
+              <span v-if="paperSize === 'A6'">標準サイズ（105 × 148 mm）</span>
+              <span v-else-if="paperSize === 'A5'">148 × 210 mm</span>
+              <span v-else>210 × 297 mm</span>
+            </p>
+          </div>
+
+          <div class="mt-3 space-y-1">
+            <label class="block text-xs font-semibold text-mint-ink">1ページの行数</label>
+            <div class="grid grid-cols-4 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+              <button v-for="n in [3, 5, 8, 10]" :key="'d-'+n" type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
+            </div>
+          </div>
+
+          <div class="mt-3 space-y-1">
+            <label class="block text-xs font-semibold text-mint-ink" for="notebookTitle">ヘッダータイトル</label>
+            <input id="notebookTitle" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-lg border border-mint-line bg-mint-wash/50 px-3 py-1.5 text-xs font-medium transition focus:border-mint focus:bg-white focus:outline-none">
+          </div>
+
+          <div class="mt-3 space-y-1">
+            <label class="block text-xs font-semibold text-mint-ink">番号の表記</label>
+            <div class="grid grid-cols-2 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
+            </div>
+          </div>
+
+          <div class="mt-3 space-y-1">
+            <label class="block text-xs font-semibold text-mint-ink">番号の横のチェック欄</label>
+            <div class="grid grid-cols-2 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
+              <button type="button" class="seg-btn rounded-lg py-1.5 text-center transition" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
+            </div>
+          </div>
+
+          <div class="mt-3 space-y-2 border-t border-mint-line pt-3">
+            <label class="block text-xs font-semibold text-mint-ink">解答色 (赤シート用)</label>
+            <div class="flex items-center gap-2">
+              <button
+                v-for="preset in COLOR_PRESETS"
+                :key="preset.value"
+                type="button"
+                class="h-6 w-6 rounded-full transition"
+                :class="colorHex === preset.value.toUpperCase() ? 'ring-2 ring-offset-2 ring-mint' : 'hover:opacity-80'"
+                :style="{ backgroundColor: preset.value }"
+                :aria-label="preset.name"
+                @click="kanjiColor = preset.value"
+              ></button>
+              <label class="relative ml-1 h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-mint-line" title="カスタム">
+                <input id="kanjiColor" type="color" v-model="kanjiColor" class="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                <span class="block h-full w-full" :style="{ backgroundColor: kanjiColor }"></span>
+              </label>
+              <span class="ml-auto font-mono text-xs text-mint-muted">[[ colorHex ]]</span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-2 self-start rounded-full bg-slate-100/80 px-3 py-1.5 font-mono text-xs text-slate-500 md:self-auto">
-          <span>記入: <strong class="text-slate-900">[[ contentRows.length ]]</strong> 件</span>
-          <span class="text-slate-300">|</span>
-          <span>予想: <strong class="text-slate-900">[[ estimatedPages ]]</strong> ページ</span>
-        </div>
-      </div>
+      </aside>
 
-      <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-        <aside class="space-y-5 lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
-          <div class="space-y-5 rounded-xl border border-slate-200 bg-white p-5">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">レイアウト設定</h3>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-slate-700">用紙サイズ</label>
-              <div class="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-slate-500">
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
-              </div>
-              <p class="text-[11px] text-slate-400">
-                <span v-if="paperSize === 'A6'">標準サイズ（105 × 148 mm）</span>
-                <span v-else-if="paperSize === 'A5'">148 × 210 mm</span>
-                <span v-else>210 × 297 mm</span>
-              </p>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-slate-700">1ページの行数</label>
-              <div class="grid grid-cols-4 gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-slate-500">
-                <button v-for="n in [3, 5, 8, 10]" :key="n" type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
-              </div>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-slate-700" for="notebookTitle">ヘッダータイトル</label>
-              <input id="notebookTitle" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-md border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-xs transition focus:border-slate-400 focus:bg-white focus:outline-none">
-              <p class="text-[11px] text-slate-400">空欄なら「ANKI NOTE」と印刷します。</p>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-slate-700">番号の表記</label>
-              <div class="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-slate-500">
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
-              </div>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-medium text-slate-700">番号の横のチェック欄</label>
-              <div class="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-slate-500">
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
-                <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
-              </div>
-            </div>
-
-            <div class="space-y-2 border-t border-slate-100 pt-2">
-              <label class="block text-xs font-medium text-slate-700">解答色 (赤シート用)</label>
-              <div class="flex items-center gap-2">
-                <button
-                  v-for="preset in COLOR_PRESETS"
-                  :key="preset.value"
-                  type="button"
-                  class="h-6 w-6 rounded-full transition"
-                  :class="colorHex === preset.value.toUpperCase() ? 'ring-2 ring-offset-2 ring-slate-400' : 'hover:opacity-80'"
-                  :style="{ backgroundColor: preset.value }"
-                  :aria-label="preset.name"
-                  @click="kanjiColor = preset.value"
-                ></button>
-                <label class="relative ml-1 h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-slate-200" title="カスタム">
-                  <input id="kanjiColor" type="color" v-model="kanjiColor" class="absolute inset-0 h-full w-full cursor-pointer opacity-0">
-                  <span class="block h-full w-full" :style="{ backgroundColor: kanjiColor }"></span>
-                </label>
-                <span class="ml-auto font-mono text-xs text-slate-400">[[ colorHex ]]</span>
-              </div>
-            </div>
+      <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-mint-line bg-white shadow-xs">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-mint-line px-4 py-3 sm:px-5">
+          <div class="min-w-0">
+            <h2 class="text-sm font-bold text-mint-ink">問題</h2>
+            <p class="mt-0.5 font-mono text-[11px] text-mint-muted">記入 [[ contentRows.length ]] 件 · 約 [[ estimatedPages ]] ページ</p>
           </div>
-
-          <input ref="fileInput" type="file" accept=".csv,text/csv" class="sr-only" @change="onFileChange">
-          <div
-            class="hidden cursor-pointer rounded-xl border border-dashed p-5 text-center transition sm:block"
-            :class="dragOver ? 'border-slate-400 bg-slate-100/50' : 'border-slate-300 bg-white/50 hover:border-slate-400 hover:bg-slate-100/50'"
-            @click="openFilePicker"
-            @dragover="onDragOver"
-            @dragleave="onDragLeave"
-            @drop="onDrop"
-          >
-            <svg class="icon mb-1 text-sm text-slate-400" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 20A4.5 4.5 0 0 1 4.1 12 5.5 5.5 0 0 1 14.7 8.2 4.5 4.5 0 0 1 19.5 16H17v-4.2l-2.2 2.2-1.4-1.4L16.8 9h.4L21 13.8l-1.4 1.4-2.2-2.2V16h-2v-4.2l-2.2 2.2-1.4-1.4L14.8 9h.2l3.6 3.6V20zM11 9.5 7.8 12.7l1.4 1.4L10.2 13.1V18h1.6v-4.9l1 1 1.4-1.4z"/></svg>
-            <p class="text-xs font-medium text-slate-600">CSVファイルをドロップ</p>
-            <p class="mt-0.5 text-[10px] text-slate-400">またはクリックしてファイルを選択</p>
-            <p v-if="fileName" class="mt-2 truncate text-[11px] font-medium text-slate-600">読み込み済み: [[ fileName ]]</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="mb-3 flex items-center justify-between">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">プレビュー</h3>
-              <span class="font-mono text-[11px] text-slate-400">[[ paperSize ]] · [[ rowsPerPage ]]行 · 1ページ目</span>
-            </div>
-            <div class="preview-stage">
-              <div class="preview-paper" :class="'is-' + paperSize.toLowerCase()" :style="{ '--preview-rows': rowsPerPage }">
-                <div class="preview-header">
-                  <span class="preview-title">[[ previewTitle ]]</span>
-                  <span class="preview-page">PAGE: 1</span>
-                </div>
-                <div class="preview-rows">
-                  <div v-for="(row, index) in previewRows" :key="'pv-' + index" class="preview-row">
-                    <div class="preview-q">
-                      <span v-if="showCheckbox" class="mr-0.5 inline-block h-[6px] w-[6px] shrink-0 border border-slate-500"></span>
-                      <span class="preview-num mr-0.5">[[ formatDisplayNum(row, index) ]]</span>
-                      <span class="preview-qtext">[[ row.question || '' ]]</span>
-                    </div>
-                    <div class="preview-split"></div>
-                    <div class="preview-a">
-                      <span class="preview-atext" :style="{ color: row.answer ? kanjiColor : '#cbd5e1' }">[[ row.answer || '' ]]</span>
-                      <span v-if="row.note" class="preview-note">[[ row.note ]]</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="preview-footer">© ANKI NOTE MAKER</div>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <section class="space-y-3 lg:col-span-8">
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-              <span class="text-xs font-bold text-slate-500">暗記データリスト</span>
-              <div class="flex items-center gap-2">
-                <button type="button" class="px-2 py-1 text-xs text-slate-400 transition hover:text-slate-600" @click="showClearModal = true">クリア</button>
-                <button type="button" class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50" @click="addRow">
-                  <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>行追加
-                </button>
-              </div>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[720px] text-left text-xs">
-                <thead class="border-b border-slate-100 bg-slate-50 font-medium text-slate-400">
-                  <tr>
-                    <th class="w-16 px-3 py-2.5">番号</th>
-                    <th class="px-3 py-2.5">問題 (例文/英語)</th>
-                    <th class="w-40 px-3 py-2.5">解答 (漢字/和訳)</th>
-                    <th class="w-44 px-3 py-2.5">備考 (類義語等)</th>
-                    <th class="w-8 px-2 py-2.5 text-center"></th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr v-for="row in rows" :key="row.id" class="transition-colors hover:bg-slate-50/80">
-                    <td class="p-1.5">
-                      <input v-model="row.num" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 font-mono text-slate-500" placeholder="1-1">
-                    </td>
-                    <td class="p-1.5">
-                      <input v-model="row.question" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 text-slate-800" placeholder="例: 絶好のキカイ">
-                    </td>
-                    <td class="p-1.5">
-                      <input v-model="row.answer" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 font-semibold" placeholder="例: 機会" :style="{ color: kanjiColor }">
-                    </td>
-                    <td class="p-1.5">
-                      <input v-model="row.note" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 text-slate-400" placeholder="例: [類] 好機">
-                    </td>
-                    <td class="p-1.5 text-center">
-                      <button type="button" class="px-1 text-xs text-slate-300 hover:text-slate-500" @click="removeRow(row.id)" aria-label="行を削除">
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="flex justify-end sm:hidden">
-            <button type="button" class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-600" @click="downloadCsv">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8 13h8v1.5H8zm0 3h5v1.5H8z"/></svg>CSV保存
+          <div class="flex shrink-0 items-center gap-2">
+            <button type="button" class="hidden px-2 py-1 text-xs text-mint-muted hover:text-mint-muted sm:inline" @click="downloadCsv">CSV保存</button>
+            <button v-if="rows.length" type="button" class="px-2 py-1 text-xs text-mint-muted hover:text-mint-muted" @click="showClearModal = true">クリア</button>
+            <button type="button" class="inline-flex items-center gap-1 rounded-md border border-mint-line bg-white px-2.5 py-1 text-xs font-medium text-mint-ink hover:bg-mint-wash sm:hidden" @click="openFilePicker">CSV</button>
+            <button type="button" class="inline-flex items-center gap-1 rounded-md border border-mint-line bg-white px-2.5 py-1 text-xs font-medium text-mint-ink hover:bg-mint-wash" @click="addRow">
+              <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>行追加
             </button>
           </div>
-        </section>
-      </div>
-    </main>
+        </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white p-3 sm:hidden">
-      <p v-if="fileName" class="mb-1.5 truncate text-center text-[10px] text-slate-400">読み込み済み: [[ fileName ]]</p>
-      <div class="mx-auto flex max-w-6xl gap-2">
-        <button type="button" class="flex-1 rounded-md border border-slate-300 bg-white py-2.5 text-xs font-medium text-slate-600" @click="openFilePicker">CSVを読む</button>
-        <button type="button" class="flex-[1.4] rounded-md bg-slate-900 py-2.5 text-xs font-semibold text-white disabled:opacity-60" :disabled="generating" @click="generatePdf">[[ generating ? '生成中…' : 'PDFを発行する' ]]</button>
-      </div>
+        <div class="relative min-h-0 flex-1 overflow-auto" :class="dragOver ? 'drop-active' : ''">
+          <div v-if="!rows.length" class="flex h-full min-h-[420px] flex-col items-center justify-center p-8 text-center">
+            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-mint-wash text-mint">
+              <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect x="5" y="3.5" width="14" height="17" rx="2"></rect>
+                <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4.5" stroke-linecap="round"></path>
+              </svg>
+            </div>
+            <p class="mt-3 text-base font-bold text-mint-ink">暗記カードを作成しましょう</p>
+            <p class="mt-1 text-xs text-mint-muted">手入力で追加するか、CSVファイルをドロップしてください</p>
+            <button type="button" class="mt-4 inline-flex items-center gap-1 rounded-xl bg-mint px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-mint-hover" @click="addFirstRow">
+              <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>最初のカードを追加
+            </button>
+            <button type="button" class="mt-4 w-full max-w-sm cursor-pointer rounded-2xl border border-dashed border-[#CBD5E1] bg-white/50 p-5 text-center text-xs text-mint-muted transition hover:border-mint hover:bg-white" @click="openFilePicker">
+              CSVファイルをここにドロップ
+            </button>
+          </div>
+
+          <div v-else class="space-y-3 p-4 md:hidden">
+            <article v-for="row in rows" :key="'m-'+row.id" class="rounded-lg border border-mint-line bg-white p-3">
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <input v-model="row.num" type="text" autocomplete="off" class="sheet-input w-20 rounded px-2 py-1 font-mono text-xs text-mint-muted" placeholder="1-1">
+                <button type="button" class="px-1 text-xs text-mint-line hover:text-mint-muted" @click="removeRow(row.id)" aria-label="行を削除">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
+                </button>
+              </div>
+              <label class="mb-1 block text-[11px] font-medium text-mint-muted">問題</label>
+              <input v-model="row.question" type="text" autocomplete="off" class="mb-3 w-full rounded-md border border-mint-line px-3 py-2 text-sm text-mint-ink" placeholder="例: 絶好のキカイ">
+              <label class="mb-1 block text-[11px] font-medium text-mint-muted">解答</label>
+              <input v-model="row.answer" type="text" autocomplete="off" class="mb-3 w-full rounded-md border border-mint-line px-3 py-2 text-sm font-semibold" placeholder="例: 機会" :style="{ color: kanjiColor }">
+              <label class="mb-1 block text-[11px] font-medium text-mint-muted">備考</label>
+              <input v-model="row.note" type="text" autocomplete="off" class="w-full rounded-md border border-mint-line px-3 py-2 text-sm text-mint-muted" placeholder="例: [類] 好機">
+            </article>
+          </div>
+
+          <table v-if="rows.length" class="hidden w-full min-w-[720px] text-left text-xs md:table">
+            <thead class="sticky top-0 z-10 border-b border-mint-line bg-mint-wash font-medium text-mint-muted">
+              <tr>
+                <th class="w-16 px-3 py-2.5">番号</th>
+                <th class="px-3 py-2.5">問題</th>
+                <th class="w-40 px-3 py-2.5">解答</th>
+                <th class="w-44 px-3 py-2.5">備考</th>
+                <th class="w-8 px-2 py-2.5 text-center"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-mint-line">
+              <tr v-for="row in rows" :key="row.id" class="hover:bg-mint-wash/80">
+                <td class="p-1.5">
+                  <input v-model="row.num" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 font-mono text-mint-muted" placeholder="1-1">
+                </td>
+                <td class="p-1.5">
+                  <input v-model="row.question" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 text-mint-ink" placeholder="例: 絶好のキカイ">
+                </td>
+                <td class="p-1.5">
+                  <input v-model="row.answer" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 font-semibold" placeholder="例: 機会" :style="{ color: kanjiColor }">
+                </td>
+                <td class="p-1.5">
+                  <input v-model="row.note" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 text-mint-muted" placeholder="例: [類] 好機">
+                </td>
+                <td class="p-1.5 text-center">
+                  <button type="button" class="px-1 text-xs text-mint-line hover:text-mint-muted" @click="removeRow(row.id)" aria-label="行を削除">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-if="fileName" class="sticky bottom-0 border-t border-mint-line bg-white px-4 py-2 text-[11px] text-mint-muted">読み込み済み: [[ fileName ]] · CSVはここにドロップできます</p>
+        </div>
+      </section>
     </div>
 
-    <div v-if="alertState" class="fixed right-4 top-20 z-40 max-w-sm rounded-md border px-4 py-3 text-sm" :class="alertState.type === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'" role="alert">
-      <svg v-if="alertState.type === 'error'" class="icon mr-1.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 5h2v7h-2zm0 8h2v2h-2z"/></svg>
-      <svg v-else class="icon mr-1.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 13.3-3.1-3.1 1.4-1.4 1.7 1.7 4.2-4.2 1.4 1.4z"/></svg>
+    <div v-if="showSettings" class="fixed inset-0 z-40 lg:hidden">
+      <div class="absolute inset-0 bg-mint-ink/40 backdrop-blur-sm" @click="showSettings = false"></div>
+      <aside
+        ref="settingsDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        tabindex="-1"
+        class="absolute inset-y-3 left-3 flex w-[min(calc(100%-1.5rem),20rem)] flex-col overflow-y-auto rounded-2xl border border-mint-line bg-white p-4 shadow-xs outline-none"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <h2 id="settings-title" class="text-sm font-bold text-mint-ink">プリント設定</h2>
+          <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash" @click="showSettings = false" aria-label="閉じる">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
+          </button>
+        </div>
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-mint-ink">用紙サイズ</label>
+          <div class="grid grid-cols-3 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
+          </div>
+        </div>
+        <div class="mt-3 space-y-1">
+          <label class="block text-xs font-semibold text-mint-ink">1ページの行数</label>
+          <div class="grid grid-cols-4 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+            <button v-for="n in [3, 5, 8, 10]" :key="'m-'+n" type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
+          </div>
+        </div>
+        <div class="mt-3 space-y-1">
+          <label class="block text-xs font-semibold text-mint-ink" for="notebookTitleMobile">ヘッダータイトル</label>
+          <input id="notebookTitleMobile" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-lg border border-mint-line bg-mint-wash/50 px-3 py-1.5 text-xs font-medium focus:border-mint focus:bg-white focus:outline-none">
+        </div>
+        <div class="mt-3 space-y-1">
+          <label class="block text-xs font-semibold text-mint-ink">番号の表記</label>
+          <div class="grid grid-cols-2 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
+          </div>
+        </div>
+        <div class="mt-3 space-y-1">
+          <label class="block text-xs font-semibold text-mint-ink">番号の横のチェック欄</label>
+          <div class="grid grid-cols-2 gap-1 rounded-xl bg-mint-wash p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
+            <button type="button" class="seg-btn rounded-lg py-1.5 text-center" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
+          </div>
+        </div>
+        <div class="mt-3 space-y-2 border-t border-mint-line pt-3">
+          <label class="block text-xs font-semibold text-mint-ink">解答色 (赤シート用)</label>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="preset in COLOR_PRESETS"
+              :key="'m-'+preset.value"
+              type="button"
+              class="h-6 w-6 rounded-full"
+              :class="colorHex === preset.value.toUpperCase() ? 'ring-2 ring-offset-2 ring-mint' : ''"
+              :style="{ backgroundColor: preset.value }"
+              :aria-label="preset.name"
+              @click="kanjiColor = preset.value"
+            ></button>
+            <label class="relative ml-1 h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-mint-line" title="カスタム">
+              <input type="color" v-model="kanjiColor" class="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+              <span class="block h-full w-full" :style="{ backgroundColor: kanjiColor }"></span>
+            </label>
+            <span class="ml-auto font-mono text-xs text-mint-muted">[[ colorHex ]]</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div v-if="showPreview" class="fixed inset-0 z-40">
+      <div class="absolute inset-0 bg-mint-ink/40 backdrop-blur-sm" @click="showPreview = false"></div>
+      <aside
+        ref="previewDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="preview-title"
+        tabindex="-1"
+        class="absolute inset-y-3 right-3 flex w-[min(calc(100%-1.5rem),28rem)] flex-col overflow-hidden rounded-2xl border border-mint-line bg-white shadow-xs outline-none"
+      >
+        <div class="flex items-center justify-between border-b border-mint-line px-5 py-3">
+          <div>
+            <h2 id="preview-title" class="text-sm font-bold text-mint-ink">プレビュー</h2>
+            <p class="font-mono text-[11px] text-mint-muted">[[ paperSize ]] · [[ rowsPerPage ]]行 · 1ページ目</p>
+          </div>
+          <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash" @click="showPreview = false" aria-label="閉じる">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
+          </button>
+        </div>
+        <div class="min-h-0 flex-1 overflow-auto">
+          <div class="preview-stage">
+            <div class="preview-paper" :class="['is-' + paperSize.toLowerCase(), rowsPerPage >= 8 ? 'is-dense' : '']" :style="{ '--preview-rows': rowsPerPage }">
+              <div class="preview-header">
+                <span class="preview-title">[[ previewTitle ]]</span>
+                <span class="preview-page">PAGE: 1</span>
+              </div>
+              <div class="preview-rows">
+                <div v-for="(row, index) in previewRows" :key="'pv-' + index" class="preview-row">
+                  <div class="preview-q">
+                    <span v-if="showCheckbox" class="mr-0.5 inline-block h-[6px] w-[6px] shrink-0 border border-mint-muted"></span>
+                    <span class="preview-num">[[ formatDisplayNum(row, index) ]]</span>
+                    <span class="preview-qtext">[[ row.question || '' ]]</span>
+                  </div>
+                  <div class="preview-split"></div>
+                  <div class="preview-a">
+                    <span class="preview-atext" :style="{ color: row.answer ? kanjiColor : '#cbd5e1' }">[[ row.answer || '' ]]</span>
+                    <span v-if="row.note" class="preview-note">[[ row.note ]]</span>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-footer">© BlindCardMaker</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <input ref="fileInput" type="file" accept=".csv,text/csv" class="sr-only" @change="onFileChange">
+
+    <div v-if="alertState" class="fixed right-4 top-20 z-50 max-w-sm rounded-2xl border px-4 py-3 text-sm shadow-xs" :class="alertState.type === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'" role="alert">
       [[ alertState.message ]]
     </div>
 
-    <div v-if="showClearModal" class="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4" @click.self="showClearModal = false">
-      <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5">
-        <h3 class="text-base font-bold text-slate-900">入力を消去しますか？</h3>
-        <p class="mt-2 text-sm text-slate-500">表の内容と読み込んだCSV名がすべてリセットされます。</p>
+    <div v-if="showClearModal" class="fixed inset-0 z-50 grid place-items-center bg-mint-ink/40 p-4 backdrop-blur-sm" @click.self="showClearModal = false">
+      <div
+        ref="clearDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="clear-title"
+        tabindex="-1"
+        class="w-full max-w-sm rounded-2xl border border-mint-line bg-white p-5 shadow-xs outline-none"
+      >
+        <h3 id="clear-title" class="text-base font-bold text-mint-ink">入力を消去しますか？</h3>
+        <p class="mt-2 text-sm text-mint-muted">表の内容と読み込んだCSV名がすべてリセットされます。</p>
         <div class="mt-5 flex justify-end gap-2">
-          <button type="button" class="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50" @click="showClearModal = false">やめる</button>
-          <button type="button" class="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800" @click="resetRows">消去する</button>
+          <button type="button" class="rounded-md px-3 py-1.5 text-xs font-medium text-mint-muted hover:bg-mint-wash" @click="showClearModal = false">やめる</button>
+          <button type="button" class="rounded-xl bg-mint px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-mint-hover" @click="resetRows">消去する</button>
         </div>
       </div>
     </div>
@@ -260,7 +360,7 @@
         err.style.placeItems = "center";
         err.style.position = "fixed";
         err.style.inset = "0";
-        err.style.background = "#f8fafc";
+        err.style.background = "#F0F4F4";
         err.style.zIndex = "100";
         err.style.padding = "24px";
       }

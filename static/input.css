@@ -7,6 +7,14 @@
 
 body {
   font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", sans-serif;
+  color: #0f2d25;
+}
+
+.seg-btn[aria-pressed="true"] {
+  background-color: #ffffff;
+  color: #0f4c3a;
+  box-shadow: 0 1px 2px 0 rgb(15 45 37 / 0.06);
+  font-weight: 700;
 }
 
 .icon {
@@ -26,128 +34,154 @@ body {
   to { transform: rotate(360deg); }
 }
 
-.seg-btn[aria-pressed="true"] {
-  background-color: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  font-weight: 600;
-}
-
 .sheet-input {
   background: transparent;
   border: 1px solid transparent;
 }
-.sheet-input:hover { border-color: #e2e8f0; }
+.sheet-input:hover { border-color: #dce5e4; }
 .sheet-input:focus {
   background: #ffffff;
   outline: none;
   border-color: transparent;
-  box-shadow: 0 0 0 1px #cbd5e1;
+  box-shadow: 0 0 0 1px #0f4c3a;
 }
 
 .preview-stage {
   display: flex;
   justify-content: center;
-  padding: 18px 12px 20px;
-  background: #f1f5f9;
-  border-radius: 8px;
+  padding: 28px 16px 32px;
+  background: #f0f4f4;
+  border-radius: 12px;
 }
 .preview-paper {
   --preview-rows: 5;
-  width: 168px;
+  width: min(100%, 252px);
   aspect-ratio: 105 / 148;
   display: flex;
   flex-direction: column;
-  padding: 11% 8% 8% 11%;
+  padding: 16px 14px 14px 16px;
   background: #fff;
   box-shadow:
     0 0 0 1px rgb(15 23 42 / 0.06),
-    0 10px 22px rgb(15 23 42 / 0.08);
+    0 14px 28px rgb(15 23 42 / 0.08);
 }
-.preview-paper.is-a5 { width: 188px; }
-.preview-paper.is-a4 { width: 208px; }
+.preview-paper.is-a5 { width: min(100%, 276px); }
+.preview-paper.is-a4 { width: min(100%, 300px); }
 .preview-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 6px;
-  padding-bottom: 4px;
-  margin-bottom: 6px;
-  border-bottom: 1.5px solid #0f172a;
+  gap: 8px;
+  padding-bottom: 7px;
+  margin-bottom: 10px;
+  border-bottom: 1.5px solid #0f2d25;
 }
 .preview-rows {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-bottom: 1px dashed #cbd5e1;
 }
 .preview-row {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1px 1fr;
   min-height: 0;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #d6dee8;
 }
 .preview-row:last-child { border-bottom: 0; }
-.preview-split { background: #0f172a; }
-.preview-q {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: 2px 5px;
-}
+.preview-split { background: #0f2d25; }
+.preview-q,
 .preview-a {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
   min-width: 0;
-  padding: 2px 5px;
+  padding: 10px 8px 6px;
 }
 .preview-title {
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #0f172a;
+  color: #0f2d25;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .preview-page {
   flex-shrink: 0;
-  font-size: 5.5px;
+  font-size: 8px;
   color: #64748b;
 }
 .preview-num {
-  flex-shrink: 0;
-  font-size: 5.5px;
+  position: absolute;
+  top: 4px;
+  left: 7px;
+  font-size: 7.5px;
+  line-height: 1;
   color: #94a3b8;
 }
-.preview-qtext, .preview-atext {
+.preview-qtext,
+.preview-atext {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  line-height: 1.25;
+  line-height: 1.4;
 }
-.preview-qtext { font-size: calc(13px / (var(--preview-rows) * 0.28 + 0.7)); color: #1e293b; }
-.preview-atext { font-size: calc(14px / (var(--preview-rows) * 0.28 + 0.7)); font-weight: 700; }
+.preview-qtext {
+  padding-top: 2px;
+  font-size: clamp(9px, calc(20px / (var(--preview-rows) * 0.16 + 0.9)), 12px);
+  color: #1e293b;
+}
+.preview-atext {
+  font-size: clamp(9.5px, calc(21px / (var(--preview-rows) * 0.16 + 0.9)), 13px);
+  font-weight: 700;
+}
 .preview-note {
-  margin-top: 1px;
-  font-size: 5px;
+  margin-top: 3px;
+  font-size: 7.5px;
+  line-height: 1.3;
   color: #64748b;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.preview-paper.is-dense .preview-q,
+.preview-paper.is-dense .preview-a {
+  padding: 8px 7px 4px;
+}
+.preview-paper.is-dense .preview-qtext,
+.preview-paper.is-dense .preview-atext {
+  -webkit-line-clamp: 1;
+}
 .preview-footer {
-  margin-top: 5px;
+  margin-top: 10px;
   text-align: center;
-  font-size: 5px;
+  font-size: 7.5px;
+  letter-spacing: 0.02em;
   color: #94a3b8;
 }
 
+.drop-active {
+  outline: 2px dashed #0f4c3a;
+  outline-offset: -8px;
+  background-color: #ffffff;
+}
+
+html.page-editor,
+body.page-editor {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.page-guide {
+  scroll-behavior: smooth;
+}
+
 @media (max-width: 767px) {
-  .editor-scroll { padding-bottom: 5.5rem; }
+  .preview-paper {
+    width: min(100%, 220px);
+  }
 }

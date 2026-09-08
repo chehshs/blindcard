@@ -188,5 +188,31 @@ class ApiValidationTests(unittest.TestCase):
         self.assertTrue(res.data.startswith(b"%PDF"))
 
 
+class PageTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_index_links_to_guide(self):
+        res = self.client.get("/")
+        self.assertEqual(res.status_code, 200)
+        html = res.get_data(as_text=True)
+        self.assertIn("BlindCardMaker", html)
+        self.assertIn("/static/blindcard-maker.svg", html)
+        self.assertIn('rel="icon"', html)
+        self.assertIn('href="/guide"', html)
+
+    def test_guide_page(self):
+        res = self.client.get("/guide")
+        self.assertEqual(res.status_code, 200)
+        html = res.get_data(as_text=True)
+        self.assertIn("使い方", html)
+        self.assertIn("BlindCardMaker", html)
+        self.assertIn("/static/blindcard-maker.svg", html)
+        self.assertIn('rel="icon"', html)
+        self.assertIn("赤シート", html)
+        self.assertIn("CSVの書き方", html)
+        self.assertIn('href="/"', html)
+
+
 if __name__ == "__main__":
     unittest.main()

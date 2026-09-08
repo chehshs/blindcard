@@ -1,4 +1,4 @@
-"""ANKI NOTE MAKER — Flask エントリポイント。"""
+"""BlindCardMaker — Flask エントリポイント。"""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ app.jinja_env.auto_reload = True
 
 @app.after_request
 def disable_template_cache(response):
-    if request.path in {"/", "/app.js"}:
+    if request.path in {"/", "/guide", "/app.js", "/static/app.css"}:
         response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -25,6 +25,11 @@ def disable_template_cache(response):
 @app.get("/")
 def index():
     return render_template("index.html")
+
+
+@app.get("/guide")
+def guide():
+    return render_template("guide.html")
 
 
 @app.get("/vue.global.prod.js")

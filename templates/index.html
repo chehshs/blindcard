@@ -128,13 +128,8 @@
         <div class="relative min-h-0 flex-1 overflow-auto" :class="dragOver ? 'drop-active' : ''">
           <div v-if="!rows.length" class="flex h-full flex-col items-center justify-center p-6">
             <div class="w-full max-w-sm text-center">
-              <div class="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-surface-2 text-muted">
-                <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <rect x="5" y="3.5" width="14" height="17" rx="2"></rect>
-                  <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4.5" stroke-linecap="round"></path>
-                </svg>
-              </div>
-              <p class="mt-5 text-[17px] font-bold tracking-tight text-ink">暗記カードを作成しましょう</p>
+              <img src="/static/cat-redsheet.png" alt="" width="930" height="660" class="mx-auto mb-1 w-[212px] max-w-full select-none" draggable="false">
+              <p class="mt-4 text-[17px] font-bold tracking-tight text-ink">暗記カードを作成しましょう</p>
               <p class="mt-2 text-[13px] leading-relaxed text-muted">1行に1問。CSVをドロップしても読み込めます。</p>
               <div class="mt-6 flex items-center justify-center gap-2">
                 <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-ink/90" @click="addFirstRow">

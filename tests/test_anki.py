@@ -1,0 +1,192 @@
+"""連番CSVのページ数、用紙スケール、APIバリデーション。"""
+
+from __future__ import annotations
+
+import os
+import re
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app import app
+from make_pdf import read_anki_csv
+from pdf_generator import (
+    EMBEDDED_FONT_PATH,
+    _normalize_rows,
+    estimate_pages,
+    generate_anki_pdf,
+    validate_options,
+)
+
+
+def _rows(nums, question="問題", answer="解答"):
+    return [{"num": str(num), "question": question, "answer": answer, "note": ""} for num in nums]
+
+
+def _pdf_page_count(pdf_bytes: bytes) -> int:
+    return len(re.findall(rb"/Type\s*/Page(?!s)\b", pdf_bytes))
+
+
+def _mediabox(pdf_bytes: bytes) -> tuple[float, float]:
+    match = re.search(
+        rb"/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]",
+        pdf_bytes,
+    )
+    if not match:
+        raise AssertionError("MediaBox が見つかりません")
+    return float(match.group(3)), float(match.group(4))
+
+
+class PdfPagingTests(unittest.TestCase):
+    def test_sequential_numbers_share_pages(self):
+        data = _rows(range(1, 11))
+        self.assertEqual(estimate_pages(data, 5), 2)
+        pdf = generate_anki_pdf(data, paper_size="A6", rows_per_page=5)
+        self.assertEqual(_pdf_page_count(pdf), 2)
+
+    def test_hyphen_sections_still_split(self):
+        data = _rows([f"1-{i}" for i in range(1, 6)] + [f"2-{i}" for i in range(1, 6)])
+        self.assertEqual(estimate_pages(data, 5), 2)
+        pdf = generate_anki_pdf(data, paper_size="A6", rows_per_page=5)
+        self.assertEqual(_pdf_page_count(pdf), 2)
+
+    def test_interleaved_sections_are_consecutive(self):
+        data = _rows(["1-1", "2-1", "1-2", "2-2"])
+        self.assertEqual(estimate_pages(data, 5), 4)
+
+    def test_blank_numbers_do_not_split(self):
+        data = _rows([""] * 10)
+        self.assertEqual(estimate_pages(data, 5), 2)
+
+
+class PdfContentTests(unittest.TestCase):
+    def test_number_keeps_ampersand(self):
+        rows = _normalize_rows(
+            [{"num": "小1&2", "question": "A&B", "answer": "<x>", "note": "C>D"}]
+        )
+        self.assertEqual(rows[0]["num"], "小1&2")
+        self.assertEqual(rows[0]["question"], "A&amp;B")
+        self.assertEqual(rows[0]["answer"], "&lt;x&gt;")
+        self.assertEqual(rows[0]["note"], "C&gt;D")
+        pdf = generate_anki_pdf(
+            [{"num": "小1&2", "question": "A&B", "answer": "<x>", "note": "C>D"}],
+            paper_size="A6",
+            rows_per_page=5,
+        )
+        self.assertTrue(pdf.startswith(b"%PDF"))
+
+    def test_long_text_does_not_raise(self):
+        data = [{"num": "1-1", "question": "あ" * 150, "answer": "い" * 80, "note": "う" * 80}]
+        pdf = generate_anki_pdf(data, paper_size="A6", rows_per_page=10)
+        self.assertTrue(pdf.startswith(b"%PDF"))
+
+    def test_too_many_rows_are_rejected(self):
+        data = _rows(range(1, 2002))
+        with self.assertRaises(ValueError) as ctx:
+            generate_anki_pdf(data)
+        self.assertIn("2000", str(ctx.exception))
+
+    def test_paper_scale_a6_a5_a4(self):
+        data = _rows(["1-1"])
+        a6 = generate_anki_pdf(data, paper_size="A6")
+        a5 = generate_anki_pdf(data, paper_size="A5")
+        a4 = generate_anki_pdf(data, paper_size="A4")
+        w6, h6 = _mediabox(a6)
+        w5, h5 = _mediabox(a5)
+        w4, h4 = _mediabox(a4)
+        self.assertLess(w6, w5)
+        self.assertLess(w5, w4)
+        self.assertLess(h6, h5)
+        self.assertLess(h5, h4)
+
+    def test_invalid_options(self):
+        with self.assertRaises(ValueError):
+            validate_options("B5", 5, "#FFA500")
+        with self.assertRaises(ValueError):
+            validate_options("A6", 7, "#FFA500")
+        with self.assertRaises(ValueError):
+            validate_options("A6", 5, "orange")
+
+    def test_japanese_font_is_embedded(self):
+        self.assertTrue(os.path.isfile(EMBEDDED_FONT_PATH))
+        pdf = generate_anki_pdf(_rows(["1-1"]))
+        self.assertIn(b"/FontFile2", pdf)
+
+
+class CsvEncodingTests(unittest.TestCase):
+    def test_cp932_csv(self):
+        raw = "番号,問題,解答\n1,絶好のキカイ,機会\n".encode("cp932")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sjis.csv"
+            path.write_bytes(raw)
+            df = read_anki_csv(str(path))
+        self.assertEqual(str(df.iloc[0, 1]), "絶好のキカイ")
+        self.assertEqual(str(df.iloc[0, 2]), "機会")
+
+
+class ApiValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_invalid_color_returns_400(self):
+        res = self.client.post(
+            "/api/generate-pdf",
+            json={
+                "paperSize": "A6",
+                "rowsPerPage": 5,
+                "color": "red",
+                "data": [{"num": "1-1", "question": "q", "answer": "a", "note": ""}],
+            },
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("error", res.get_json())
+
+    def test_invalid_rows_returns_400(self):
+        res = self.client.post(
+            "/api/generate-pdf",
+            json={
+                "paperSize": "A6",
+                "rowsPerPage": 7,
+                "color": "#FFA500",
+                "data": [{"num": "1-1", "question": "q", "answer": "a", "note": ""}],
+            },
+        )
+        self.assertEqual(res.status_code, 400)
+
+    def test_payload_too_large_returns_json(self):
+        previous = app.config["MAX_CONTENT_LENGTH"]
+        app.config["MAX_CONTENT_LENGTH"] = 64
+        try:
+            res = self.client.post(
+                "/api/generate-pdf",
+                data=b'{"paperSize":"A6","data":[]}' + (b" " * 80),
+                content_type="application/json",
+            )
+            self.assertEqual(res.status_code, 413)
+            self.assertEqual(res.mimetype, "application/json")
+            self.assertIn("error", res.get_json())
+        finally:
+            app.config["MAX_CONTENT_LENGTH"] = previous
+
+    def test_ok_pdf(self):
+        res = self.client.post(
+            "/api/generate-pdf",
+            json={
+                "paperSize": "A5",
+                "rowsPerPage": 5,
+                "color": "#FFA500",
+                "data": [{"num": "1", "question": "q", "answer": "a", "note": ""}],
+            },
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.mimetype, "application/pdf")
+        self.assertTrue(res.data.startswith(b"%PDF"))
+
+
+if __name__ == "__main__":
+    unittest.main()

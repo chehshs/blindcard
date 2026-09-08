@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+出力/
+*.pdf
+node_modules/

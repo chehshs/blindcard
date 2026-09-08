@@ -1,0 +1,10 @@
+{
+  "name": "anki-note-maker",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i static/input.css -o static/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

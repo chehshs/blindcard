@@ -12,6 +12,13 @@ module.exports = {
         panel: "20px",
       },
       colors: {
+        ink: "#0B1F1A",
+        muted: "#66807A",
+        line: "#E4E9E7",
+        surface: {
+          DEFAULT: "#FAFBFB",
+          2: "#F1F4F3",
+        },
         mint: {
           DEFAULT: "#0F4C3A",
           hover: "#083025",

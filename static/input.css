@@ -7,18 +7,20 @@
 
 body {
   font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", sans-serif;
-  color: #0f2d25;
-  background:
-    radial-gradient(1100px 520px at 12% -8%, rgb(15 76 58 / 0.05), transparent 60%),
-    #eef2f1;
+  color: #0b1f1a;
+  background: #ffffff;
   font-feature-settings: "palt" 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.012em;
+  -webkit-font-smoothing: antialiased;
 }
 
+.seg-btn {
+  color: #66807a;
+}
 .seg-btn[aria-pressed="true"] {
   background-color: #ffffff;
-  color: #0f4c3a;
-  box-shadow: 0 1px 2px 0 rgb(15 45 37 / 0.10), 0 1px 1px 0 rgb(15 45 37 / 0.04);
+  color: #0b1f1a;
+  box-shadow: 0 1px 2px 0 rgb(11 31 26 / 0.08), 0 0 0 1px rgb(11 31 26 / 0.04);
   font-weight: 700;
 }
 
@@ -44,23 +46,23 @@ body {
   border: 1px solid transparent;
 }
 .sheet-input { border-radius: 8px; transition: background-color .12s ease, box-shadow .12s ease; }
-.sheet-input:hover { background: #f4f7f6; }
+.sheet-input:hover { background: #f1f4f3; }
 .sheet-input::placeholder { color: #c3d2ce; }
 .sheet-input:focus {
   background: #ffffff;
   outline: none;
   border-color: transparent;
-  box-shadow: 0 0 0 2px rgb(15 76 58 / 0.35);
+  box-shadow: 0 0 0 2px rgb(11 31 26 / 0.55);
 }
 
 .preview-stage {
   flex: 1;
-  border-radius: 16px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
-  background: #f0f4f4;
+  background: #f1f4f3;
 }
 .preview-paper {
   --preview-rows: 5;
@@ -114,7 +116,7 @@ body {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #0f2d25;
+  color: #0b1f1a;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

@@ -7,9 +7,9 @@
   <link rel="icon" href="/static/blindcard-maker.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css">
 </head>
-<body class="page-editor h-screen overflow-hidden bg-mint-wash text-mint-ink antialiased">
+<body class="page-editor h-screen overflow-hidden bg-white text-ink antialiased">
   <div id="app" class="flex h-screen flex-col" v-cloak>
-    <header class="sticky top-3 z-20 mx-3 mb-3 mt-3 flex h-16 shrink-0 items-center justify-between rounded-panel bg-white/80 px-4 shadow-panel backdrop-blur-xl sm:mx-4 sm:px-6">
+    <header class="z-20 flex h-14 shrink-0 items-center justify-between border-b border-line bg-white px-4 sm:px-6">
       <div class="flex min-w-0 items-center gap-3">
         <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash lg:hidden" @click="showSettings = true" aria-label="プリント設定">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v1.8H4zm0 5.1h16v1.8H4zM4 16.2h16V18H4z"/></svg>
@@ -22,15 +22,15 @@
         <a href="/guide" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash hover:text-mint-ink sm:hidden" aria-label="使い方" title="使い方">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 14.6a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zm1.3-8.4c0 1.5-1 2.1-1.7 2.6-.6.4-.8.6-.8 1.2v.6h-1.6v-.7c0-1.2.8-1.9 1.6-2.4.6-.4 1-.7 1-1.3 0-.6-.4-1-1.1-1-.8 0-1.2.4-1.4 1l-1.5-.6C8.2 6.6 9.4 5.4 11.3 5.4c1.8 0 3 1.1 3 2.8z"/></svg>
         </a>
-        <a href="/guide" class="hidden items-center rounded-md px-2.5 py-1.5 text-xs font-medium text-mint-muted hover:bg-mint-wash hover:text-mint-ink sm:inline-flex">使い方</a>
-        <button type="button" class="hidden items-center gap-1.5 rounded-full bg-mint-wash px-3.5 py-2 text-xs font-medium text-mint-ink transition hover:bg-mint-line/60 sm:inline-flex" @click="openFilePicker">
+        <a href="/guide" class="hidden items-center rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted transition hover:bg-surface-2 hover:text-ink sm:inline-flex">使い方</a>
+        <button type="button" class="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted transition hover:bg-surface-2 hover:text-ink sm:inline-flex" @click="openFilePicker">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8 13h8v1.5H8zm0 3h5v1.5H8z"/></svg>CSVを読み込む
         </button>
-        <button type="button" class="inline-flex items-center gap-1.5 rounded-full bg-mint-wash px-3.5 py-2 text-xs font-medium text-mint-ink transition hover:bg-mint-line/60 disabled:cursor-not-allowed disabled:opacity-40" :disabled="!canExport" @click="openPreview" title="問題を1件以上入力するとプレビューできます">
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-muted transition hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40" :disabled="!canExport" @click="openPreview" title="問題を1件以上入力するとプレビューできます">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5 0 9.3 3.1 11 7.5C21.3 16.9 17 20 12 20S2.7 16.9 1 12.5C2.7 8.1 7 5 12 5zm0 2.2A7.5 7.5 0 0 0 4.1 12.5 7.5 7.5 0 0 0 12 16.8a7.5 7.5 0 0 0 7.9-4.3A7.5 7.5 0 0 0 12 7.2zm0 2.3a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>
           <span class="hidden sm:inline">プレビュー</span>
         </button>
-        <button type="button" class="inline-flex items-center gap-1.5 rounded-full bg-mint px-5 py-2 text-xs font-semibold text-white shadow-pop transition hover:bg-mint-hover disabled:cursor-not-allowed disabled:bg-mint-line disabled:text-mint-muted disabled:shadow-none" :disabled="!canExport || generating" @click="generatePdf">
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted" :disabled="!canExport || generating" @click="generatePdf">
           <svg v-if="generating" class="icon icon-spin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10h-2.2A7.8 7.8 0 1 1 12 4.2z"/></svg>
           <svg v-else class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2 4 4h-4zM8.5 12.2h2.2c1.3 0 2.1.7 2.1 1.7 0 .7-.4 1.2-1 1.4.7.2 1.2.8 1.2 1.6 0 1.2-1 2-2.4 2H8.5zm1.4 1.2v1.3h.7c.5 0 .8-.2.8-.6s-.3-.7-.8-.7zm0 2.4v1.5h.9c.6 0 .9-.3.9-.8s-.4-.7-1-.7z"/></svg>
           <span class="hidden sm:inline">[[ generating ? '生成中…' : 'PDFを発行する' ]]</span>
@@ -39,18 +39,17 @@
       </div>
     </header>
 
-    <div class="flex min-h-0 flex-1 gap-3 px-3 pb-3 sm:gap-4 sm:px-4 sm:pb-4" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-      <aside class="hidden w-72 shrink-0 space-y-5 overflow-y-auto rounded-panel bg-white p-6 shadow-panel lg:block">
+    <div class="flex min-h-0 flex-1" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
+      <aside class="hidden w-[272px] shrink-0 space-y-5 overflow-y-auto border-r border-line bg-surface px-5 py-6 lg:block">
         <div class="settings-panel">
-          <h2 class="text-sm font-bold tracking-tight text-mint-ink">プリント設定</h2>
-          <p class="mt-1 text-[11px] text-mint-muted">用紙と印刷の見え方</p>
+          <h2 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Print settings</h2>
 
           <div class="mt-5 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink">用紙サイズ</label>
-            <div class="grid grid-cols-3 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
+            <label class="block text-xs font-semibold text-ink">用紙サイズ</label>
+            <div class="grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
             </div>
             <p class="text-[11px] text-mint-muted">
               <span v-if="paperSize === 'A6'">標準サイズ（105 × 148 mm）</span>
@@ -60,35 +59,35 @@
           </div>
 
           <div class="mt-6 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink">1ページの行数</label>
-            <div class="grid grid-cols-4 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-              <button v-for="n in [3, 5, 8, 10]" :key="'d-'+n" type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
+            <label class="block text-xs font-semibold text-ink">1ページの行数</label>
+            <div class="grid grid-cols-4 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+              <button v-for="n in [3, 5, 8, 10]" :key="'d-'+n" type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
             </div>
           </div>
 
           <div class="mt-6 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink" for="notebookTitle">ヘッダータイトル</label>
+            <label class="block text-xs font-semibold text-ink" for="notebookTitle">ヘッダータイトル</label>
             <input id="notebookTitle" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-xl bg-mint-wash px-3 py-2 text-xs font-medium transition placeholder:text-mint-muted/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-mint/30">
           </div>
 
           <div class="mt-6 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink">番号の表記</label>
-            <div class="grid grid-cols-2 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
+            <label class="block text-xs font-semibold text-ink">番号の表記</label>
+            <div class="grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
             </div>
           </div>
 
           <div class="mt-6 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink">番号の横のチェック欄</label>
-            <div class="grid grid-cols-2 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
-              <button type="button" class="seg-btn rounded-full py-1.5 text-center transition" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
+            <label class="block text-xs font-semibold text-ink">番号の横のチェック欄</label>
+            <div class="grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
+              <button type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
             </div>
           </div>
 
           <div class="mt-6 space-y-2">
-            <label class="block text-xs font-semibold text-mint-ink">解答色 (赤シート用)</label>
+            <label class="block text-xs font-semibold text-ink">解答色 (赤シート用)</label>
             <div class="flex items-center gap-2">
               <button
                 v-for="preset in COLOR_PRESETS"
@@ -110,16 +109,16 @@
         </div>
       </aside>
 
-      <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-panel bg-white shadow-panel">
-        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-mint-line px-5 py-4 sm:px-6">
+      <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
           <div class="min-w-0">
-            <h2 class="text-xl font-bold tracking-tight text-mint-ink">問題</h2>
-            <p class="mt-1 text-[11px] tabular-nums text-mint-muted">記入 [[ contentRows.length ]] 件 · 約 [[ estimatedPages ]] ページ</p>
+            <h2 class="text-[20px] font-bold leading-none tracking-tight text-ink">問題</h2>
+            <p class="mt-1.5 text-xs tabular-nums text-muted">[[ contentRows.length ]] 件 · 約 [[ estimatedPages ]] ページ</p>
           </div>
           <div class="flex shrink-0 items-center gap-2">
-            <button type="button" class="hidden px-2 py-1 text-xs text-mint-muted hover:text-mint-muted sm:inline" @click="downloadCsv">CSV保存</button>
-            <button v-if="rows.length" type="button" class="px-2 py-1 text-xs text-mint-muted hover:text-mint-muted" @click="showClearModal = true">クリア</button>
-            <button type="button" class="inline-flex items-center gap-1 rounded-full bg-mint-wash px-3 py-1.5 text-xs font-medium text-mint-ink transition hover:bg-mint-line/60 sm:hidden" @click="openFilePicker">CSV</button>
+            <button type="button" class="hidden rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-surface-2 hover:text-ink sm:inline" @click="downloadCsv">CSV保存</button>
+            <button v-if="rows.length" type="button" class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-surface-2 hover:text-ink" @click="showClearModal = true">クリア</button>
+            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-ink transition hover:bg-surface-2 sm:hidden" @click="openFilePicker">CSV</button>
             <button type="button" class="inline-flex items-center gap-1 rounded-md border border-mint-line bg-white px-2.5 py-1 text-xs font-medium text-mint-ink hover:bg-mint-wash" @click="addRow">
               <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>行追加
             </button>
@@ -128,18 +127,21 @@
 
         <div class="relative min-h-0 flex-1 overflow-auto" :class="dragOver ? 'drop-active' : ''">
           <div v-if="!rows.length" class="flex h-full flex-col items-center justify-center p-6">
-            <div class="w-full max-w-md cursor-pointer rounded-panel border border-dashed border-mint-line bg-mint-wash/50 px-8 py-12 text-center transition hover:border-mint hover:bg-white" @click="openFilePicker">
-              <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white text-mint shadow-xs">
+            <div class="w-full max-w-sm text-center">
+              <div class="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-surface-2 text-muted">
                 <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                   <rect x="5" y="3.5" width="14" height="17" rx="2"></rect>
                   <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4.5" stroke-linecap="round"></path>
                 </svg>
               </div>
-              <p class="mt-5 text-lg font-bold tracking-tight text-mint-ink">暗記カードを作成しましょう</p>
-              <p class="mt-2 text-xs leading-relaxed text-mint-muted">CSVファイルをここにドロップ、またはクリックして選択</p>
-              <button type="button" class="mt-6 inline-flex items-center gap-1.5 rounded-full bg-mint px-5 py-2.5 text-xs font-semibold text-white shadow-pop transition hover:bg-mint-hover" @click.stop="addFirstRow">
-                <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>手入力ではじめる
-              </button>
+              <p class="mt-5 text-[17px] font-bold tracking-tight text-ink">暗記カードを作成しましょう</p>
+              <p class="mt-2 text-[13px] leading-relaxed text-muted">1行に1問。CSVをドロップしても読み込めます。</p>
+              <div class="mt-6 flex items-center justify-center gap-2">
+                <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-ink/90" @click="addFirstRow">
+                  <svg class="icon text-[10px]" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>手入力ではじめる
+                </button>
+                <button type="button" class="rounded-lg border border-line px-4 py-2.5 text-[13px] font-medium text-ink transition hover:bg-surface-2" @click="openFilePicker">CSVを読み込む</button>
+              </div>
             </div>
           </div>
 
@@ -161,7 +163,7 @@
           </div>
 
           <table v-if="rows.length" class="hidden w-full min-w-[720px] text-left text-xs md:table">
-            <thead class="sticky top-0 z-10 bg-white text-[11px] font-semibold text-mint-muted">
+            <thead class="sticky top-0 z-10 bg-white text-[11px] font-semibold text-muted">
               <tr>
                 <th class="w-16 px-3 py-3">番号</th>
                 <th class="px-3 py-3">問題</th>
@@ -170,8 +172,8 @@
                 <th class="w-8 px-2 py-3 text-center"></th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-mint-hair">
-              <tr v-for="(row, index) in rows" :key="row.id" class="hover:bg-mint-wash/60">
+            <tbody class="divide-y divide-line/70">
+              <tr v-for="(row, index) in rows" :key="row.id" class="transition-colors hover:bg-surface">
                 <td class="px-2 py-2">
                   <input v-model="row.num" type="text" autocomplete="off" class="sheet-input w-full rounded px-2 py-1 font-mono text-mint-muted" :placeholder="index === 0 ? '1-1' : ''">
                 </td>
@@ -214,39 +216,39 @@
           </button>
         </div>
         <div class="space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink">用紙サイズ</label>
-          <div class="grid grid-cols-3 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
+          <label class="block text-xs font-semibold text-ink">用紙サイズ</label>
+          <div class="grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="paperSize === 'A6'" @click="paperSize = 'A6'">A6</button>
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="paperSize === 'A5'" @click="paperSize = 'A5'">A5</button>
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="paperSize === 'A4'" @click="paperSize = 'A4'">A4</button>
           </div>
         </div>
         <div class="mt-6 space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink">1ページの行数</label>
-          <div class="grid grid-cols-4 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-            <button v-for="n in [3, 5, 8, 10]" :key="'m-'+n" type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
+          <label class="block text-xs font-semibold text-ink">1ページの行数</label>
+          <div class="grid grid-cols-4 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+            <button v-for="n in [3, 5, 8, 10]" :key="'m-'+n" type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
           </div>
         </div>
         <div class="mt-6 space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink" for="notebookTitleMobile">ヘッダータイトル</label>
+          <label class="block text-xs font-semibold text-ink" for="notebookTitleMobile">ヘッダータイトル</label>
           <input id="notebookTitleMobile" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-xl bg-mint-wash px-3 py-2 text-xs font-medium transition placeholder:text-mint-muted/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-mint/30">
         </div>
         <div class="mt-6 space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink">番号の表記</label>
-          <div class="grid grid-cols-2 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
+          <label class="block text-xs font-semibold text-ink">番号の表記</label>
+          <div class="grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="numberStyle === 'raw'" @click="numberStyle = 'raw'">1-1</button>
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="numberStyle === 'dot'" @click="numberStyle = 'dot'">1. 2. 3.</button>
           </div>
         </div>
         <div class="mt-6 space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink">番号の横のチェック欄</label>
-          <div class="grid grid-cols-2 gap-1 rounded-full bg-mint-wash p-1 text-xs font-medium text-mint-muted">
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
-            <button type="button" class="seg-btn rounded-full py-1.5 text-center" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
+          <label class="block text-xs font-semibold text-ink">番号の横のチェック欄</label>
+          <div class="grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="!showCheckbox" @click="showCheckbox = false">なし</button>
+            <button type="button" class="seg-btn rounded-md py-1.5 text-center" :aria-pressed="showCheckbox" @click="showCheckbox = true">つける</button>
           </div>
         </div>
         <div class="mt-6 space-y-2">
-          <label class="block text-xs font-semibold text-mint-ink">解答色 (赤シート用)</label>
+          <label class="block text-xs font-semibold text-ink">解答色 (赤シート用)</label>
           <div class="flex items-center gap-2">
             <button
               v-for="preset in COLOR_PRESETS"
@@ -317,7 +319,7 @@
 
     <input ref="fileInput" type="file" accept=".csv,text/csv" class="sr-only" @change="onFileChange">
 
-    <div v-if="alertState" class="fixed bottom-6 left-1/2 z-50 max-w-sm -translate-x-1/2 rounded-full px-5 py-2.5 text-xs font-medium shadow-pop" :class="alertState.type === 'error' ? 'bg-red-600 text-white' : 'bg-mint text-white'" role="alert">
+    <div v-if="alertState" class="fixed bottom-6 left-1/2 z-50 max-w-sm -translate-x-1/2 rounded-lg px-4 py-2.5 text-[13px] font-medium shadow-pop" :class="alertState.type === 'error' ? 'bg-red-600 text-white' : 'bg-ink text-white'" role="alert">
       [[ alertState.message ]]
     </div>
 

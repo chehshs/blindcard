@@ -1,5 +1,11 @@
 const { createApp, ref, computed, watch, onMounted, onUnmounted, nextTick } = Vue;
 
+const FONT_SIZE_PRESETS = [
+  { id: "sm", name: "小", scale: 0.82 },
+  { id: "md", name: "標準", scale: 1 },
+  { id: "lg", name: "大", scale: 1.22 },
+];
+
 const COLOR_PRESETS = [
   { name: "オレンジ", value: "#FFA500" },
   { name: "ローズ", value: "#F43F5E" },
@@ -154,6 +160,7 @@ createApp({
   setup() {
     const paperSize = ref("A6");
     const rowsPerPage = ref(5);
+    const fontSize = ref("md");
     const kanjiColor = ref("#FFA500");
     const notebookTitle = ref("");
     const numberStyle = ref("raw");
@@ -208,6 +215,11 @@ createApp({
     });
 
     const colorHex = computed(() => String(kanjiColor.value || "#FFA500").toUpperCase());
+
+    const previewFontScale = computed(() => {
+      const found = FONT_SIZE_PRESETS.find((item) => item.id === fontSize.value);
+      return found ? found.scale : 1;
+    });
 
     const canExport = computed(() => printMode.value === "blank" || contentRows.value.length > 0);
 
@@ -390,6 +402,7 @@ createApp({
         showCheckbox: !!showCheckbox.value,
         numberStyle: numberStyle.value,
         printMode: printMode.value,
+        fontSize: fontSize.value,
         data: payloadRows,
       };
 
@@ -463,8 +476,10 @@ createApp({
 
     return {
       COLOR_PRESETS,
+      FONT_SIZE_PRESETS,
       paperSize,
       rowsPerPage,
+      fontSize,
       kanjiColor,
       notebookTitle,
       numberStyle,
@@ -489,6 +504,7 @@ createApp({
       previewRows,
       previewSection,
       previewTitle,
+      previewFontScale,
       colorHex,
       formatDisplayNum,
       addRow,

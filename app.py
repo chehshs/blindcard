@@ -32,6 +32,12 @@ def guide():
     return render_template("guide.html")
 
 
+@app.get("/favicon.ico")
+def favicon():
+    # ブラウザがルート直下に取りに来る分を静的ファイルに向ける
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon")
+
+
 @app.get("/vue.global.prod.js")
 def vue_lib():
     return send_from_directory(app.template_folder, "vue.global.prod.js")
@@ -67,6 +73,7 @@ def api_generate_pdf():
             show_checkbox=payload.get("showCheckbox", False),
             number_style=payload.get("numberStyle", "raw"),
             print_mode=payload.get("printMode", "full"),
+            font_size=payload.get("fontSize", "md"),
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400

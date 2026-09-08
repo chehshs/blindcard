@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BlindCard</title>
-  <link rel="icon" href="/static/blindcard-maker.svg" type="image/svg+xml">
+  <link rel="icon" href="/static/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/static/favicon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/static/favicon-180.png">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="page-editor h-screen overflow-hidden bg-white text-ink antialiased">
@@ -77,6 +79,21 @@
             <div class="grid grid-cols-4 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
               <button v-for="n in [3, 5, 8, 10]" :key="'d-'+n" type="button" class="seg-btn rounded-md py-1.5 text-center transition" :aria-pressed="rowsPerPage === n" @click="rowsPerPage = n">[[ n ]]</button>
             </div>
+          </div>
+
+          <div class="mt-6 space-y-2">
+            <label class="block text-xs font-semibold text-ink">文字サイズ</label>
+            <div class="grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+              <button
+                v-for="opt in FONT_SIZE_PRESETS"
+                :key="'d-fs-'+opt.id"
+                type="button"
+                class="seg-btn rounded-md py-1.5 text-center transition"
+                :aria-pressed="fontSize === opt.id"
+                @click="fontSize = opt.id"
+              >[[ opt.name ]]</button>
+            </div>
+            <p class="text-[11px] text-muted">行数に応じた基本サイズから、さらに小さく／大きくします。長い文は枠内に収まるよう自動で調整されます。</p>
           </div>
 
           <div class="mt-6 space-y-2">
@@ -247,6 +264,19 @@
           </div>
         </div>
         <div class="mt-6 space-y-2">
+          <label class="block text-xs font-semibold text-ink">文字サイズ</label>
+          <div class="grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1 text-xs font-medium text-mint-muted">
+            <button
+              v-for="opt in FONT_SIZE_PRESETS"
+              :key="'m-fs-'+opt.id"
+              type="button"
+              class="seg-btn rounded-md py-1.5 text-center"
+              :aria-pressed="fontSize === opt.id"
+              @click="fontSize = opt.id"
+            >[[ opt.name ]]</button>
+          </div>
+        </div>
+        <div class="mt-6 space-y-2">
           <label class="block text-xs font-semibold text-ink" for="notebookTitleMobile">ヘッダータイトル</label>
           <input id="notebookTitleMobile" v-model="notebookTitle" type="text" maxlength="80" autocomplete="off" placeholder="例: 漢字テスト 第3回" class="w-full rounded-xl bg-mint-wash px-3 py-2 text-xs font-medium transition placeholder:text-mint-muted/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-mint/30">
         </div>
@@ -300,7 +330,7 @@
         <div class="flex items-center justify-between border-b border-mint-line px-5 py-4">
           <div>
             <h2 id="preview-title" class="text-lg font-bold tracking-tight text-mint-ink">プレビュー</h2>
-            <p class="mt-0.5 text-xs tabular-nums text-muted">[[ paperSize ]] · [[ rowsPerPage ]]行 · 1ページ目<span v-if="printMode !== 'full'"> · [[ printMode === 'question' ? '問題のみ' : '白紙' ]]</span></p>
+            <p class="mt-0.5 text-xs tabular-nums text-muted">[[ paperSize ]] · [[ rowsPerPage ]]行 · [[ fontSize === 'sm' ? '小' : fontSize === 'lg' ? '大' : '標準' ]] · 1ページ目<span v-if="printMode !== 'full'"> · [[ printMode === 'question' ? '問題のみ' : '白紙' ]]</span></p>
           </div>
           <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-mint-muted hover:bg-mint-wash" @click="showPreview = false" aria-label="閉じる">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.8 12 11.6l5.8-5.8 1.4 1.4L13.4 13l5.8 5.8-1.4 1.4L12 14.4l-5.8 5.8-1.4-1.4L10.6 13 4.8 7.2z"/></svg>
@@ -308,7 +338,7 @@
         </div>
         <div class="flex min-h-0 flex-1 overflow-auto p-4">
           <div class="preview-stage">
-            <div class="preview-paper" :class="['is-' + paperSize.toLowerCase(), rowsPerPage >= 8 ? 'is-dense' : '']" :style="{ '--preview-rows': rowsPerPage }">
+            <div class="preview-paper" :class="['is-' + paperSize.toLowerCase(), rowsPerPage >= 8 ? 'is-dense' : '']" :style="{ '--preview-rows': rowsPerPage, '--preview-font': previewFontScale }">
               <div class="preview-header">
                 <span class="preview-title">[[ previewTitle ]]</span>
                 <span class="preview-page">PAGE: 1</span>

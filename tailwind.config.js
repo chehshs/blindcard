@@ -13,6 +13,7 @@ module.exports = {
           ink: "#0F2D25",
           muted: "#4A6B62",
           line: "#DCE5E4",
+          hair: "#EDF2F1",
           wash: "#F0F4F4",
           rose: "#F43F5E",
         },

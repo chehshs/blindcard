@@ -39,6 +39,7 @@ body {
   border: 1px solid transparent;
 }
 .sheet-input:hover { border-color: #dce5e4; }
+.sheet-input::placeholder { color: #c3d2ce; }
 .sheet-input:focus {
   background: #ffffff;
   outline: none;
@@ -47,15 +48,17 @@ body {
 }
 
 .preview-stage {
+  flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 28px 16px 32px;
+  padding: 24px 16px;
   background: #f0f4f4;
   border-radius: 12px;
 }
 .preview-paper {
   --preview-rows: 5;
-  width: min(100%, 252px);
+  width: min(100%, 296px);
   aspect-ratio: 105 / 148;
   display: flex;
   flex-direction: column;
@@ -65,8 +68,8 @@ body {
     0 0 0 1px rgb(15 23 42 / 0.06),
     0 14px 28px rgb(15 23 42 / 0.08);
 }
-.preview-paper.is-a5 { width: min(100%, 276px); }
-.preview-paper.is-a4 { width: min(100%, 300px); }
+.preview-paper.is-a5 { width: min(100%, 320px); }
+.preview-paper.is-a4 { width: min(100%, 344px); }
 .preview-header {
   display: flex;
   align-items: flex-end;

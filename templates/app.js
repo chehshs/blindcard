@@ -157,6 +157,7 @@ createApp({
     const kanjiColor = ref("#FFA500");
     const notebookTitle = ref("");
     const numberStyle = ref("raw");
+    const printMode = ref("full");
     const showCheckbox = ref(false);
     const rows = ref(defaultRows());
     const fileName = ref("");
@@ -186,8 +187,13 @@ createApp({
 
     const previewRows = computed(() => {
       const perPage = Number(rowsPerPage.value);
-      const source = firstPageRows(filledRows.value, perPage);
-      const padded = source.map((row) => ({ ...row }));
+      const mode = printMode.value;
+      const source = mode === "blank" ? [] : firstPageRows(filledRows.value, perPage);
+      const padded = source.map((row) => ({
+        ...row,
+        answer: mode === "full" ? row.answer : "",
+        note: mode === "full" ? row.note : "",
+      }));
       while (padded.length < perPage) {
         padded.push(emptyRow(""));
       }
@@ -203,7 +209,7 @@ createApp({
 
     const colorHex = computed(() => String(kanjiColor.value || "#FFA500").toUpperCase());
 
-    const canExport = computed(() => contentRows.value.length > 0);
+    const canExport = computed(() => printMode.value === "blank" || contentRows.value.length > 0);
 
     function formatDisplayNum(row, index) {
       if (numberStyle.value === "dot") {
@@ -366,7 +372,8 @@ createApp({
     async function generatePdf() {
       hideAlert();
       const payloadRows = collectRows();
-      if (!payloadRows.some((row) => row.question || row.answer)) {
+      // 白紙モードは罫線だけを書き出すので、データがなくても発行できる
+      if (printMode.value !== "blank" && !payloadRows.some((row) => row.question || row.answer)) {
         showAlert("問題または解答が入力された行が必要です。", "error");
         return;
       }
@@ -382,6 +389,7 @@ createApp({
         title: String(notebookTitle.value || "").trim(),
         showCheckbox: !!showCheckbox.value,
         numberStyle: numberStyle.value,
+        printMode: printMode.value,
         data: payloadRows,
       };
 
@@ -460,6 +468,7 @@ createApp({
       kanjiColor,
       notebookTitle,
       numberStyle,
+      printMode,
       showCheckbox,
       rows,
       fileName,

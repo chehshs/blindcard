@@ -66,6 +66,7 @@ def api_generate_pdf():
             title=payload.get("title", ""),
             show_checkbox=payload.get("showCheckbox", False),
             number_style=payload.get("numberStyle", "raw"),
+            print_mode=payload.get("printMode", "full"),
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400

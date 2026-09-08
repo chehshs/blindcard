@@ -129,6 +129,36 @@ class CsvEncodingTests(unittest.TestCase):
         self.assertEqual(str(df.iloc[0, 2]), "機会")
 
 
+class PrintModeTests(unittest.TestCase):
+    def test_modes_generate_pdf(self):
+        data = _rows([f"1-{i}" for i in range(1, 8)])
+        for mode in ("full", "question", "blank"):
+            pdf = generate_anki_pdf(data, paper_size="A6", rows_per_page=5, print_mode=mode)
+            self.assertTrue(pdf.startswith(b"%PDF"), mode)
+            self.assertEqual(_pdf_page_count(pdf), 2, mode)
+
+    def test_hidden_content_makes_smaller_pdf(self):
+        data = _rows([f"1-{i}" for i in range(1, 8)], question="問題文", answer="解答")
+        full = len(generate_anki_pdf(data, print_mode="full"))
+        question = len(generate_anki_pdf(data, print_mode="question"))
+        blank = len(generate_anki_pdf(data, print_mode="blank"))
+        self.assertLess(question, full)
+        self.assertLess(blank, question)
+
+    def test_blank_mode_works_without_data(self):
+        pdf = generate_anki_pdf([], paper_size="A6", rows_per_page=5, print_mode="blank")
+        self.assertEqual(_pdf_page_count(pdf), 1)
+
+    def test_other_modes_still_require_data(self):
+        for mode in ("full", "question"):
+            with self.assertRaises(ValueError):
+                generate_anki_pdf([], print_mode=mode)
+
+    def test_invalid_mode_is_rejected(self):
+        with self.assertRaises(ValueError):
+            generate_anki_pdf(_rows(["1-1"]), print_mode="secret")
+
+
 class ApiValidationTests(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()

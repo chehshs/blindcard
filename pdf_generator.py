@@ -24,6 +24,8 @@ PAGE_SIZES = {
 }
 ALLOWED_ROWS_PER_PAGE = (3, 5, 8, 10)
 ALLOWED_NUMBER_STYLES = ("raw", "dot")
+# full: 問題と解答 / question: 問題のみ(解答欄は空白) / blank: 白紙(罫線のみ)
+ALLOWED_PRINT_MODES = ("full", "question", "blank")
 HEX_COLOR_RE = re.compile(r"^#([0-9A-Fa-f]{6})$")
 MAX_ROWS = 2000
 MAX_FIELD_LEN = 2000
@@ -228,7 +230,8 @@ def validate_options(
     title: str = "",
     show_checkbox: object = False,
     number_style: str = "raw",
-) -> tuple[str, int, str, str, bool, str]:
+    print_mode: str = "full",
+) -> tuple[str, int, str, str, bool, str, str]:
     size_key = str(paper_size or "A6").upper()
     if size_key not in PAGE_SIZES:
         raise ValueError("用紙サイズは A6 / A5 / A4 のいずれかを指定してください。")
@@ -249,7 +252,11 @@ def validate_options(
     if style not in ALLOWED_NUMBER_STYLES:
         raise ValueError("番号の表記は 入力どおり / 1. 2. 3. のいずれかを指定してください。")
 
-    return size_key, rows, color.upper(), heading, _truthy(show_checkbox), style
+    mode = str(print_mode or "full").strip().lower()
+    if mode not in ALLOWED_PRINT_MODES:
+        raise ValueError("印刷する内容は 問題と解答 / 問題のみ / 白紙 のいずれかを指定してください。")
+
+    return size_key, rows, color.upper(), heading, _truthy(show_checkbox), style, mode
 
 
 def generate_anki_pdf(
@@ -260,19 +267,32 @@ def generate_anki_pdf(
     title: str = "",
     show_checkbox: object = False,
     number_style: str = "raw",
+    print_mode: str = "full",
 ) -> bytes:
     """暗記カード PDF を生成し、バイト列で返す。"""
-    paper_size, rows_per_page, answer_color, title, show_checkbox, number_style = validate_options(
+    (
+        paper_size,
+        rows_per_page,
+        answer_color,
+        title,
+        show_checkbox,
+        number_style,
+        print_mode,
+    ) = validate_options(
         paper_size,
         rows_per_page,
         answer_color,
         title=title,
         show_checkbox=show_checkbox,
         number_style=number_style,
+        print_mode=print_mode,
     )
     rows = _normalize_rows(data)
     if not rows:
-        raise ValueError("出力するデータがありません。番号・問題・解答のいずれかを入力してください。")
+        if print_mode != "blank":
+            raise ValueError("出力するデータがありません。番号・問題・解答のいずれかを入力してください。")
+        # 白紙モードはデータなしでも1ページ分の罫線を出す
+        rows = [{"num": "", "question": "", "answer": "", "note": ""} for _ in range(rows_per_page)]
 
     _ensure_font()
     width, height = PAGE_SIZES[paper_size]
@@ -382,10 +402,14 @@ def generate_anki_pdf(
                     continue
 
                 row = chunk[i]
-                num = _display_number(row["num"], i, number_style)
-                q_text = row["question"]
-                a_text = row["answer"]
-                note_text = row["note"]
+                if print_mode == "blank":
+                    # 罫線とチェック欄だけを残し、文字はすべて出さない
+                    num = q_text = a_text = note_text = ""
+                else:
+                    num = _display_number(row["num"], i, number_style)
+                    q_text = row["question"]
+                    a_text = row["answer"] if print_mode == "full" else ""
+                    note_text = row["note"] if print_mode == "full" else ""
 
                 label_x = left_margin
                 num_y = row_y_top - (16 * font_scale)

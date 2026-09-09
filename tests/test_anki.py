@@ -17,7 +17,6 @@ if str(ROOT) not in sys.path:
 
 import app as app_module
 from app import app
-from make_pdf import read_anki_csv
 from pdf_generator import (
     EMBEDDED_FONT_PATH,
     MAX_PAGES,
@@ -159,17 +158,6 @@ class PdfContentTests(unittest.TestCase):
         self.assertTrue(os.path.isfile(EMBEDDED_FONT_PATH))
         pdf = generate_anki_pdf(_rows(["1-1"]))
         self.assertIn(b"/FontFile2", pdf)
-
-
-class CsvEncodingTests(unittest.TestCase):
-    def test_cp932_csv(self):
-        raw = "番号,問題,解答\n1,絶好のキカイ,機会\n".encode("cp932")
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "sjis.csv"
-            path.write_bytes(raw)
-            df = read_anki_csv(str(path))
-        self.assertEqual(str(df.iloc[0, 1]), "絶好のキカイ")
-        self.assertEqual(str(df.iloc[0, 2]), "機会")
 
 
 class PrintModeTests(unittest.TestCase):

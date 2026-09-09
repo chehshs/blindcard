@@ -1,5 +1,0 @@
-# CLI（make_pdf.py）で CSV を読むための依存。
-# Web アプリ本体には不要なので、サーバーには入れません。
--r requirements.txt
-pandas>=2.0.0 ; python_version >= "3.9"
-pandas>=1.3,<2 ; python_version < "3.9"

@@ -23,6 +23,8 @@
 - アプリ — https://yachi-note.net/tools/blindcard/
 - 操作方法 — https://yachi-note.net/tools/blindcard/guide
 
+読み込める CSV の形は [`examples/sample.csv`](examples/sample.csv) の通りです。
+
 入力された問題・解答はサーバーに保存しません。PDF を返したら破棄します。
 
 ## 構造
@@ -33,7 +35,8 @@ pdf_generator.py   組版と PDF 生成（reportlab）。行の分割やペー�
 templates/         画面（Vue 同梱）と使い方ページ
 static/            ビルド済み CSS、ロゴ、favicon
 fonts/             PDF に埋め込む日本語フォント
-tests/             Python 33 件 + JavaScript
+index.cgi          常駐プロセスを置けない環境向けの入口
+tests/             Python 32 件 + JavaScript
 ```
 
 処理の流れは単純で、状態を持ちません。
@@ -58,19 +61,8 @@ tests/             Python 33 件 + JavaScript
   Excel から書き出したファイルがそのまま通ります。
 
 公開 API には IP ごとのレート制限、リクエストサイズ・件数・ページ数の上限、
-CSP を含むセキュリティヘッダーを設定しています。
-
-## 開発
-
-```bash
-python3 -m pip install -r requirements.txt
-python3 app.py                    # http://127.0.0.1:5000
-
-npm run build:css                 # Tailwind クラスを変えたら実行（→ static/app.css）
-
-python3 -m unittest discover -s tests
-node tests/test_csv_header.js
-```
+CSP を含むセキュリティヘッダーを設定しています。テストは push のたびに
+GitHub Actions で実行しています（Python / JavaScript）。
 
 ## ライセンス
 

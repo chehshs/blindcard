@@ -23,17 +23,22 @@ def read_anki_csv(path: str) -> pd.DataFrame:
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(base_dir, "CSV", "kanji_matched.csv")
-
-    if not os.path.exists(csv_path):
-        csv_dir = os.path.join(base_dir, "CSV")
-        if os.path.exists(csv_dir):
-            files = [f for f in os.listdir(csv_dir) if f.endswith(".csv")]
-            if files:
-                csv_path = os.path.join(csv_dir, files[0])
+    if len(sys.argv) > 1:
+        csv_path = sys.argv[1]
+        if not os.path.isabs(csv_path):
+            csv_path = os.path.join(os.getcwd(), csv_path)
+    else:
+        csv_path = os.path.join(base_dir, "examples", "sample.csv")
+        if not os.path.exists(csv_path):
+            csv_dir = os.path.join(base_dir, "CSV")
+            if os.path.isdir(csv_dir):
+                files = sorted(f for f in os.listdir(csv_dir) if f.endswith(".csv"))
+                if files:
+                    csv_path = os.path.join(csv_dir, files[0])
 
     if not os.path.exists(csv_path):
         print(f"エラー: CSVファイルが見つかりません -> {csv_path}")
+        print("使い方: python3 make_pdf.py [CSVファイル]")
         sys.exit(1)
 
     df = read_anki_csv(csv_path)

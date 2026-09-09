@@ -3,6 +3,9 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+.env
 出力/
 *.pdf
 node_modules/
+REVIEW.md
+CSV/

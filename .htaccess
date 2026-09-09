@@ -1,0 +1,15 @@
+# /tools/blindcard を Flask CGI に渡す。実ファイル（static/ など）はそのまま返す。
+Options +ExecCGI
+AddHandler cgi-script .cgi
+DirectoryIndex index.cgi
+
+<IfModule LiteSpeed>
+CacheDisable public /
+RewriteRule .* - [E=Cache-Control:no-cache]
+</IfModule>
+
+RewriteEngine On
+RewriteBase /tools/blindcard/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.cgi/$1 [QSA,L]

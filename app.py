@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
 import os
+import random
+import tempfile
 import time
 from collections import deque
 from threading import Lock, Semaphore
+
+try:
+    import fcntl  # POSIX のみ。無い環境ではプロセス内カウンタにフォールバックする。
+except ImportError:  # pragma: no cover
+    fcntl = None
 
 from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
 from werkzeug.exceptions import HTTPException
@@ -22,6 +30,13 @@ PDF_WAIT_SECONDS = 20.0
 _RATE_LOCK = Lock()
 _RATE_HITS: dict[str, deque[float]] = {}
 _PDF_SLOT = Semaphore(PDF_CONCURRENCY)
+
+# CGI ではリクエストごとにプロセスが作り直されるため、プロセス内のカウンタでは
+# レート制限が一切効かない。ファイル＋flock でプロセスをまたいで数える。
+RATE_STATE_DIR = os.environ.get("RATE_STATE_DIR") or os.path.join(
+    tempfile.gettempdir(), "blindcard-rate"
+)
+_RATE_PRUNE_PROBABILITY = 0.02
 
 
 def _env_flag(name: str) -> bool:
@@ -140,9 +155,8 @@ def _client_ip() -> str:
     return (request.remote_addr or "unknown")[:64]
 
 
-def _rate_ok(bucket_key: str, limit: int, window: float) -> bool:
-    if app.config.get("TESTING"):
-        return True
+def _rate_ok_in_memory(bucket_key: str, limit: int, window: float) -> bool:
+    """常駐プロセス用。CGI では毎回リセットされるので単体では使えない。"""
     now = time.monotonic()
     with _RATE_LOCK:
         hits = _RATE_HITS.setdefault(bucket_key, deque())
@@ -156,6 +170,70 @@ def _rate_ok(bucket_key: str, limit: int, window: float) -> bool:
             for key in stale[:2500]:
                 _RATE_HITS.pop(key, None)
         return True
+
+
+def _rate_state_path(bucket_key: str) -> str:
+    name = hashlib.sha256(bucket_key.encode("utf-8")).hexdigest()[:32]
+    return os.path.join(RATE_STATE_DIR, name)
+
+
+def _prune_rate_state(window: float) -> None:
+    """取りこぼしたカウンタファイルを間引く。失敗しても無視する。"""
+    cutoff = time.time() - max(window * 4, 300)
+    try:
+        with os.scandir(RATE_STATE_DIR) as entries:
+            for entry in entries:
+                try:
+                    if entry.is_file() and entry.stat().st_mtime < cutoff:
+                        os.unlink(entry.path)
+                except OSError:
+                    continue
+    except OSError:
+        pass
+
+
+def _rate_ok_on_disk(bucket_key: str, limit: int, window: float) -> bool:
+    """ファイル＋flock で数える。CGI でもワーカー並列でも共有される。"""
+    now = time.time()
+    path = _rate_state_path(bucket_key)
+    try:
+        os.makedirs(RATE_STATE_DIR, mode=0o700, exist_ok=True)
+        with open(path, "a+") as fh:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            try:
+                fh.seek(0)
+                hits = []
+                for token in fh.read().split():
+                    try:
+                        stamp = float(token)
+                    except ValueError:
+                        continue
+                    if now - stamp <= window:
+                        hits.append(stamp)
+                allowed = len(hits) < limit
+                if allowed:
+                    hits.append(now)
+                fh.seek(0)
+                fh.truncate()
+                fh.write(" ".join("%.3f" % stamp for stamp in hits[-limit:]))
+                fh.flush()
+            finally:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+    except OSError as exc:
+        app.logger.warning("レート制限の状態を保存できません (%s): %s", RATE_STATE_DIR, exc)
+        return _rate_ok_in_memory(bucket_key, limit, window)
+
+    if random.random() < _RATE_PRUNE_PROBABILITY:
+        _prune_rate_state(window)
+    return allowed
+
+
+def _rate_ok(bucket_key: str, limit: int, window: float) -> bool:
+    if app.config.get("TESTING"):
+        return True
+    if fcntl is None:
+        return _rate_ok_in_memory(bucket_key, limit, window)
+    return _rate_ok_on_disk(bucket_key, limit, window)
 
 
 def _pdf_from_payload(payload: dict, first_page_only: bool = False) -> tuple[bytes, str]:

@@ -9,3 +9,4 @@ __pycache__/
 node_modules/
 REVIEW.md
 CSV/
+.rate-state/

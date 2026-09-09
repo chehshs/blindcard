@@ -1,4 +1,5 @@
-# CLI（make_pdf.py / run.command）で CSV を読むための依存。
+# CLI（make_pdf.py / run.command）で CSV を読むための依存。手元の環境用です。
 # Web アプリ本体には不要なので、サーバーには入れません。
 -r requirements.txt
-pandas>=2.0.0
+pandas>=2.0.0 ; python_version >= "3.9"
+pandas>=1.3,<2 ; python_version < "3.9"

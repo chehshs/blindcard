@@ -1,4 +1,10 @@
 # Web アプリ本体。本番サーバーにはこれだけ入れれば動きます。
-flask>=3.0.0
-reportlab>=4.0.0
-gunicorn>=22.0.0
+#
+# Flask 3.x は Python 3.8 以上が必要です。共有サーバーが 3.7 の場合に
+# 「満たすバージョンが無い」で止まらないよう、条件を分けています。
+flask>=3.0 ; python_version >= "3.8"
+flask>=2.2,<3 ; python_version < "3.8"
+reportlab>=4.0
+
+# gunicorn は VPS などで常駐させる場合だけ必要です（CGI 配信では使いません）。
+#   python3 -m pip install gunicorn

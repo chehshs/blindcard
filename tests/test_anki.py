@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 import re
 import sys
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import app as app_module
 from app import app
 from make_pdf import read_anki_csv
 from pdf_generator import (
@@ -296,8 +299,12 @@ class ApiValidationTests(unittest.TestCase):
 
         previous_testing = app.config.get("TESTING")
         previous_rate = app_mod.GENERATE_RATE
+        previous_state_dir = app_mod.RATE_STATE_DIR
+        # カウンタはファイル共有なので、テストごとに空のディレクトリを使う
+        state_dir = tempfile.mkdtemp(prefix="blindcard-rate-api-")
         app.config["TESTING"] = False
         app_mod.GENERATE_RATE = (1, 60.0)
+        app_mod.RATE_STATE_DIR = state_dir
         app_mod._RATE_HITS.clear()
         payload = {
             "paperSize": "A6",
@@ -314,7 +321,9 @@ class ApiValidationTests(unittest.TestCase):
         finally:
             app.config["TESTING"] = previous_testing
             app_mod.GENERATE_RATE = previous_rate
+            app_mod.RATE_STATE_DIR = previous_state_dir
             app_mod._RATE_HITS.clear()
+            shutil.rmtree(state_dir, ignore_errors=True)
 
 
 class PageTests(unittest.TestCase):
@@ -347,6 +356,47 @@ class PageTests(unittest.TestCase):
         self.assertIn("サーバーに保存しません", html)
         self.assertIn("120ページ", html)
         self.assertIn("IPAex明朝", html)
+
+
+class RateLimitTests(unittest.TestCase):
+    """CGI ではプロセスが毎回作り直されるので、カウンタはファイルで共有する。"""
+
+    def setUp(self):
+        self._dir = tempfile.mkdtemp(prefix="blindcard-rate-test-")
+        self._previous = app_module.RATE_STATE_DIR
+        app_module.RATE_STATE_DIR = self._dir
+
+    def tearDown(self):
+        app_module.RATE_STATE_DIR = self._previous
+        shutil.rmtree(self._dir, ignore_errors=True)
+
+    def test_limit_is_enforced_across_calls(self):
+        results = [app_module._rate_ok_on_disk("generate:198.51.100.1", 3, 60.0) for _ in range(5)]
+        self.assertEqual(results, [True, True, True, False, False])
+
+    def test_buckets_are_independent(self):
+        for _ in range(3):
+            app_module._rate_ok_on_disk("generate:198.51.100.1", 3, 60.0)
+        self.assertFalse(app_module._rate_ok_on_disk("generate:198.51.100.1", 3, 60.0))
+        self.assertTrue(app_module._rate_ok_on_disk("generate:198.51.100.2", 3, 60.0))
+        self.assertTrue(app_module._rate_ok_on_disk("preview:198.51.100.1", 3, 60.0))
+
+    def test_state_survives_a_fresh_process(self):
+        """別プロセスから同じディレクトリを見て、カウントが引き継がれること。"""
+        script = (
+            "import sys; sys.path.insert(0, %r)\n"
+            "import app as m\n"
+            "m.RATE_STATE_DIR = %r\n"
+            "print(sum(1 for _ in range(5) if m._rate_ok_on_disk('generate:203.0.113.9', 3, 60.0)))\n"
+        ) % (str(ROOT), self._dir)
+        first = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+        second = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+        self.assertEqual(first.stdout.strip(), "3", first.stderr)
+        self.assertEqual(second.stdout.strip(), "0", second.stderr)
+
+    def test_falls_back_when_directory_is_unwritable(self):
+        app_module.RATE_STATE_DIR = "/proc/blindcard-does-not-exist"
+        self.assertTrue(app_module._rate_ok_on_disk("generate:198.51.100.3", 3, 60.0))
 
 
 if __name__ == "__main__":

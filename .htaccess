@@ -8,8 +8,26 @@ CacheDisable public /
 RewriteRule .* - [E=Cache-Control:no-cache]
 </IfModule>
 
+
+# --- 直接配信しないもの ---------------------------------------------------
+# static/ の画像や CSS は実ファイルのまま返したいので、それ以外の同梱物を塞ぐ。
+# （アプリ自身はディスクから読むので、ここで塞いでも動作に影響はない）
+<FilesMatch "\.(py|pyc|pyo|sh|cgi~|json|lock|md|cfg|toml|ya?ml|txt|command)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
 RewriteEngine On
 RewriteBase /tools/blindcard/
+
+# ソース・フォント・作業ディレクトリは404にする
+RewriteRule ^(fonts|templates|tests|deploy|__pycache__|\.rate-state)(/|$) - [R=404,L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.cgi/$1 [QSA,L]

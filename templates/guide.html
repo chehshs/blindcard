@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="ja" class="page-guide">
+<html lang="ja" class="page-guide" data-prefix="{{ prefix }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>使い方 - BlindCard</title>
-  <link rel="icon" href="/static/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="icon" href="/static/favicon-192.png" sizes="192x192" type="image/png">
-  <link rel="apple-touch-icon" href="/static/favicon-180.png">
-  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="{{ prefix }}/static/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="{{ prefix }}/static/favicon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="{{ prefix }}/static/favicon-180.png">
+  <link rel="stylesheet" href="{{ prefix }}/static/app.css">
 </head>
 <body class="min-h-screen bg-white text-ink antialiased">
   <header class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-white/90 px-4 backdrop-blur sm:px-6">
-    <a href="/" class="flex min-w-0 items-center gap-3">
-      <img src="/static/blindcard-maker.svg" alt="BlindCardMaker" class="h-6 w-auto max-w-[10rem] sm:h-7 sm:max-w-[14rem]">
+    <a href="{{ prefix }}/" class="flex min-w-0 items-center gap-3">
+      <img src="{{ prefix }}/static/blindcard-maker.svg" alt="BlindCardMaker" class="h-6 w-auto max-w-[10rem] sm:h-7 sm:max-w-[14rem]">
     </a>
-    <a href="/" class="inline-flex items-center rounded-lg bg-ink px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-ink/90">編集画面へ</a>
+    <a href="{{ prefix }}/" class="inline-flex items-center rounded-lg bg-ink px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-ink/90">編集画面へ</a>
   </header>
 
   <div class="mx-auto flex max-w-5xl gap-10 px-4 py-8 sm:px-6 lg:py-10">
@@ -37,9 +37,9 @@
         <div class="min-w-0">
           <p class="text-[11px] font-bold uppercase tracking-wider text-muted">Guide</p>
           <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink">使い方</h1>
-          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">左に問題、右に解答のプリントをPDFにします。解答は標準のオレンジなどの色で印字するので、赤シートをかぶせると隠して覚えられます。</p>
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">左に問題、右に解答のプリントをPDFにします。解答は標準のオレンジなどの色で印字するので、赤シートをかぶせると隠して覚えられます。入力した問題・解答はサーバーに保存しません。</p>
         </div>
-        <img src="/static/cat-redsheet.png" alt="赤シートを押し出す黒猫のイラスト" width="930" height="660" class="hidden w-[200px] shrink-0 select-none sm:block" draggable="false">
+        <img src="{{ prefix }}/static/cat-redsheet.png" alt="赤シートを押し出す黒猫のイラスト" width="930" height="660" class="hidden w-[200px] shrink-0 select-none sm:block" draggable="false">
       </div>
 
       <nav class="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm lg:hidden" aria-label="目次">
@@ -108,7 +108,7 @@
             </div>
             <div class="rounded-2xl border border-line bg-white p-4">
               <p class="text-xs font-semibold text-ink">プレビューしてからPDF</p>
-              <p class="mt-1 text-xs leading-relaxed text-muted">1ページ目の見え方を確認してから書き出せます。一度に2000件まで。</p>
+              <p class="mt-1 text-xs leading-relaxed text-muted">1ページ目の見え方を確認してから書き出せます。一度に2000件、または120ページまで。</p>
             </div>
             <div class="rounded-2xl border border-line bg-white p-4">
               <p class="text-xs font-semibold text-ink">赤シートで隠せる</p>
@@ -132,14 +132,14 @@
             <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">2</span>
             <div>
               <p class="text-sm font-semibold text-ink">用紙と見た目を選ぶ</p>
-              <p class="mt-1 text-xs leading-relaxed text-muted">左のプリント設定で用紙サイズ、行数、文字サイズ、タイトル、番号の表記、解答色を決めます。狭い画面では左上のメニューから開けます。</p>
+              <p class="mt-1 text-xs leading-relaxed text-muted">左のプリント設定で用紙サイズ、行数、問題と解答の文字サイズ、タイトル、番号の表記、解答色を決めます。狭い画面では左上のメニューから開けます。</p>
             </div>
           </li>
           <li class="flex gap-3 rounded-2xl border border-line bg-white p-4">
             <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-[11px] font-bold text-white">3</span>
             <div>
               <p class="text-sm font-semibold text-ink">プレビューで確認する</p>
-              <p class="mt-1 text-xs leading-relaxed text-muted">右上の「プレビュー」で1ページ目のレイアウトを見ます。問題か解答が1件以上あると使えます。</p>
+              <p class="mt-1 text-xs leading-relaxed text-muted">右上の「プレビュー」で、実際に出力される1ページ目を見ます。問題か解答が1件以上あると使えます。</p>
             </div>
           </li>
           <li class="flex gap-3 rounded-2xl border border-line bg-white p-4">
@@ -232,11 +232,15 @@
           </div>
           <div class="rounded-2xl border border-line bg-white p-4">
             <p class="text-xs font-semibold text-ink">1ページの行数</p>
-            <p class="mt-1 text-xs leading-relaxed text-muted">3 / 5 / 8 / 10。多いほど文字は小さくなります。さらに下の文字サイズで調整できます。</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">3 / 5 / 8 / 10。多いほど文字は小さくなります。問題と解答の文字サイズでもさらに調整できます。</p>
           </div>
           <div class="rounded-2xl border border-line bg-white p-4">
-            <p class="text-xs font-semibold text-ink">文字サイズ</p>
-            <p class="mt-1 text-xs leading-relaxed text-muted">小 / 標準 / 大。行数で決まる基本の大きさから、全体を一段小さく／大きくします。長い文は枠からはみ出さないよう自動で縮小されます。</p>
+            <p class="text-xs font-semibold text-ink">問題の文字サイズ</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">小 / 標準 / 大。左側の問題文の大きさです。行数で決まる基本サイズから一段小さく／大きくします。</p>
+          </div>
+          <div class="rounded-2xl border border-line bg-white p-4">
+            <p class="text-xs font-semibold text-ink">解答の文字サイズ</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">小 / 標準 / 大。右側の解答と備考の大きさです。長い文は枠からはみ出さないよう自動で縮小されます。</p>
           </div>
           <div class="rounded-2xl border border-line bg-white p-4">
             <p class="text-xs font-semibold text-ink">ヘッダータイトル</p>
@@ -332,8 +336,18 @@
             <p class="font-semibold text-ink">2000件を超えると言われる</p>
             <p class="mt-1 text-xs leading-relaxed text-muted">一度に出力できる上限です。CSVを分割して複数回書き出してください。</p>
           </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-ink">120ページを超えると言われる</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">1回の発行は120ページまでです。1ページの行数を増やすか、CSVを分割してください。ハイフン付き番号でセクションが分かれるとページも増えます。</p>
+          </div>
+          <div class="px-4 py-3">
+            <p class="font-semibold text-ink">プレビューが真っ白／黒い</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">一部のブラウザはプレビュー枠にPDFを描きません。「別タブで開く」を使うか、そのまま「PDFを発行する」でダウンロードしてください。</p>
+          </div>
         </div>
       </section>
+
+      <p class="mt-10 text-xs leading-relaxed text-muted">日本語フォントは IPAex明朝（IPA Font License Agreement v1.0）を埋め込んでいます。</p>
     </article>
   </div>
 </body>

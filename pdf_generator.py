@@ -26,8 +26,15 @@ ALLOWED_ROWS_PER_PAGE = (3, 5, 8, 10)
 ALLOWED_NUMBER_STYLES = ("raw", "dot")
 # full: 問題と解答 / question: 問題のみ(解答欄は空白) / blank: 白紙(罫線のみ)
 ALLOWED_PRINT_MODES = ("full", "question", "blank")
+ALLOWED_FONT_SIZES = ("sm", "md", "lg")
+FONT_SIZE_MULTIPLIERS = {
+    "sm": 0.82,
+    "md": 1.0,
+    "lg": 1.22,
+}
 HEX_COLOR_RE = re.compile(r"^#([0-9A-Fa-f]{6})$")
 MAX_ROWS = 2000
+MAX_PAGES = 120
 MAX_FIELD_LEN = 2000
 MAX_TITLE_LEN = 80
 DEFAULT_TITLE = "BlindCardMaker"
@@ -223,6 +230,13 @@ def _fit_paragraph(
     return best, best_h
 
 
+def _normalize_font_size(value: object, label: str) -> str:
+    size_label = str(value or "md").strip().lower()
+    if size_label not in ALLOWED_FONT_SIZES:
+        raise ValueError(f"{label}は 小 / 標準 / 大 のいずれかを指定してください。")
+    return size_label
+
+
 def validate_options(
     paper_size: str,
     rows_per_page: int,
@@ -231,7 +245,10 @@ def validate_options(
     show_checkbox: object = False,
     number_style: str = "raw",
     print_mode: str = "full",
-) -> tuple[str, int, str, str, bool, str, str]:
+    question_font_size: str | None = None,
+    answer_font_size: str | None = None,
+    font_size: str | None = None,
+) -> tuple[str, int, str, str, bool, str, str, str, str]:
     size_key = str(paper_size or "A6").upper()
     if size_key not in PAGE_SIZES:
         raise ValueError("用紙サイズは A6 / A5 / A4 のいずれかを指定してください。")
@@ -256,7 +273,23 @@ def validate_options(
     if mode not in ALLOWED_PRINT_MODES:
         raise ValueError("印刷する内容は 問題と解答 / 問題のみ / 白紙 のいずれかを指定してください。")
 
-    return size_key, rows, color.upper(), heading, _truthy(show_checkbox), style, mode
+    shared = font_size
+    q_size = question_font_size if question_font_size not in (None, "") else shared
+    a_size = answer_font_size if answer_font_size not in (None, "") else shared
+    question_label = _normalize_font_size(q_size, "問題の文字サイズ")
+    answer_label = _normalize_font_size(a_size, "解答の文字サイズ")
+
+    return (
+        size_key,
+        rows,
+        color.upper(),
+        heading,
+        _truthy(show_checkbox),
+        style,
+        mode,
+        question_label,
+        answer_label,
+    )
 
 
 def generate_anki_pdf(
@@ -268,6 +301,10 @@ def generate_anki_pdf(
     show_checkbox: object = False,
     number_style: str = "raw",
     print_mode: str = "full",
+    question_font_size: str | None = None,
+    answer_font_size: str | None = None,
+    font_size: str | None = None,
+    first_page_only: object = False,
 ) -> bytes:
     """暗記カード PDF を生成し、バイト列で返す。"""
     (
@@ -278,6 +315,8 @@ def generate_anki_pdf(
         show_checkbox,
         number_style,
         print_mode,
+        question_font_size,
+        answer_font_size,
     ) = validate_options(
         paper_size,
         rows_per_page,
@@ -286,13 +325,27 @@ def generate_anki_pdf(
         show_checkbox=show_checkbox,
         number_style=number_style,
         print_mode=print_mode,
+        question_font_size=question_font_size,
+        answer_font_size=answer_font_size,
+        font_size=font_size,
     )
+    preview_one = _truthy(first_page_only)
     rows = _normalize_rows(data)
     if not rows:
         if print_mode != "blank":
             raise ValueError("出力するデータがありません。番号・問題・解答のいずれかを入力してください。")
         # 白紙モードはデータなしでも1ページ分の罫線を出す
         rows = [{"num": "", "question": "", "answer": "", "note": ""} for _ in range(rows_per_page)]
+
+    if not preview_one:
+        page_total = 0
+        for _, group in _group_rows(rows):
+            page_total += (len(group) + rows_per_page - 1) // rows_per_page
+        if page_total > MAX_PAGES:
+            raise ValueError(
+                f"出力が{page_total}ページになります。一度に出せるのは{MAX_PAGES}ページまでです。"
+                "1ページの行数を増やすか、CSVを分割してください。"
+            )
 
     _ensure_font()
     width, height = PAGE_SIZES[paper_size]
@@ -309,14 +362,17 @@ def generate_anki_pdf(
     row_h = content_height / rows_per_page
     split_x = left_margin + (content_width * 0.50)
 
-    font_scale = max(0.75, min(row_h / 68.0, 2.2))
-    q_size = 9 * font_scale
-    a_size = 10.5 * font_scale
-    note_size = 7.5 * font_scale
-    num_size = 7 * font_scale
-    header_size = 8 * font_scale
-    page_label_size = 7 * font_scale
-    copy_size = 6.5 * font_scale
+    row_scale = max(0.75, min(row_h / 68.0, 2.2))
+    q_mult = FONT_SIZE_MULTIPLIERS[question_font_size]
+    a_mult = FONT_SIZE_MULTIPLIERS[answer_font_size]
+    font_scale = row_scale
+    q_size = 9 * row_scale * q_mult
+    a_size = 10.5 * row_scale * a_mult
+    note_size = 7.5 * row_scale * a_mult
+    num_size = 7 * row_scale * q_mult
+    header_size = 8 * row_scale
+    page_label_size = 7 * row_scale
+    copy_size = 6.5 * row_scale
 
     styles = getSampleStyleSheet()
     left_style = ParagraphStyle(
@@ -467,6 +523,9 @@ def generate_anki_pdf(
 
             c.showPage()
             page_num += 1
+            if preview_one:
+                c.save()
+                return buffer.getvalue()
 
     c.save()
     return buffer.getvalue()

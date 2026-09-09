@@ -17,11 +17,14 @@ from app import app
 from make_pdf import read_anki_csv
 from pdf_generator import (
     EMBEDDED_FONT_PATH,
+    MAX_PAGES,
     _normalize_rows,
     estimate_pages,
     generate_anki_pdf,
     validate_options,
 )
+
+app.config["TESTING"] = True
 
 
 def _rows(nums, question="問題", answer="解答"):
@@ -91,6 +94,16 @@ class PdfContentTests(unittest.TestCase):
             generate_anki_pdf(data)
         self.assertIn("2000", str(ctx.exception))
 
+    def test_too_many_pages_are_rejected(self):
+        data = _rows([f"{i}-1" for i in range(1, MAX_PAGES + 10)])
+        with self.assertRaises(ValueError) as ctx:
+            generate_anki_pdf(data, paper_size="A6", rows_per_page=5)
+        self.assertIn(str(MAX_PAGES), str(ctx.exception))
+        preview = generate_anki_pdf(
+            data, paper_size="A6", rows_per_page=5, first_page_only=True
+        )
+        self.assertEqual(_pdf_page_count(preview), 1)
+
     def test_paper_scale_a6_a5_a4(self):
         data = _rows(["1-1"])
         a6 = generate_anki_pdf(data, paper_size="A6")
@@ -111,6 +124,33 @@ class PdfContentTests(unittest.TestCase):
             validate_options("A6", 7, "#FFA500")
         with self.assertRaises(ValueError):
             validate_options("A6", 5, "orange")
+        with self.assertRaises(ValueError):
+            validate_options("A6", 5, "#FFA500", font_size="huge")
+        with self.assertRaises(ValueError):
+            validate_options("A6", 5, "#FFA500", question_font_size="huge")
+        with self.assertRaises(ValueError):
+            validate_options("A6", 5, "#FFA500", answer_font_size="huge")
+
+    def test_font_size_presets_generate(self):
+        data = _rows(["1-1"])
+        for size in ("sm", "md", "lg"):
+            pdf = generate_anki_pdf(data, paper_size="A6", font_size=size)
+            self.assertTrue(pdf.startswith(b"%PDF"), size)
+
+    def test_question_and_answer_font_sizes_differ(self):
+        data = _rows(["1-1"], question="問題文を少し長めに書く", answer="解答")
+        q_lg = generate_anki_pdf(data, question_font_size="lg", answer_font_size="sm")
+        a_lg = generate_anki_pdf(data, question_font_size="sm", answer_font_size="lg")
+        self.assertTrue(q_lg.startswith(b"%PDF"))
+        self.assertTrue(a_lg.startswith(b"%PDF"))
+        self.assertNotEqual(q_lg, a_lg)
+
+    def test_first_page_only_is_one_page(self):
+        data = _rows(range(1, 16))
+        full = generate_anki_pdf(data, paper_size="A6", rows_per_page=5)
+        preview = generate_anki_pdf(data, paper_size="A6", rows_per_page=5, first_page_only=True)
+        self.assertEqual(_pdf_page_count(full), 3)
+        self.assertEqual(_pdf_page_count(preview), 1)
 
     def test_japanese_font_is_embedded(self):
         self.assertTrue(os.path.isfile(EMBEDDED_FONT_PATH))
@@ -217,6 +257,65 @@ class ApiValidationTests(unittest.TestCase):
         self.assertEqual(res.mimetype, "application/pdf")
         self.assertTrue(res.data.startswith(b"%PDF"))
 
+    def test_preview_returns_first_page_only(self):
+        res = self.client.post(
+            "/api/preview-pdf",
+            json={
+                "paperSize": "A6",
+                "rowsPerPage": 5,
+                "color": "#FFA500",
+                "questionFontSize": "lg",
+                "answerFontSize": "sm",
+                "data": [
+                    {"num": str(i), "question": "q", "answer": "a", "note": ""}
+                    for i in range(1, 12)
+                ],
+            },
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.mimetype, "application/pdf")
+        self.assertTrue(res.data.startswith(b"%PDF"))
+        self.assertEqual(_pdf_page_count(res.data), 1)
+        self.assertNotIn("attachment", (res.headers.get("Content-Disposition") or "").lower())
+
+    def test_pathlike_paper_size_is_rejected(self):
+        res = self.client.post(
+            "/api/generate-pdf",
+            json={
+                "paperSize": "../evil",
+                "rowsPerPage": 5,
+                "color": "#FFA500",
+                "data": [{"num": "1-1", "question": "q", "answer": "a", "note": ""}],
+            },
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertNotIn("evil", (res.headers.get("Content-Disposition") or "").lower())
+
+    def test_generate_rate_limit(self):
+        import app as app_mod
+
+        previous_testing = app.config.get("TESTING")
+        previous_rate = app_mod.GENERATE_RATE
+        app.config["TESTING"] = False
+        app_mod.GENERATE_RATE = (1, 60.0)
+        app_mod._RATE_HITS.clear()
+        payload = {
+            "paperSize": "A6",
+            "rowsPerPage": 5,
+            "color": "#FFA500",
+            "data": [{"num": "1", "question": "q", "answer": "a", "note": ""}],
+        }
+        try:
+            first = self.client.post("/api/generate-pdf", json=payload)
+            self.assertEqual(first.status_code, 200)
+            second = self.client.post("/api/generate-pdf", json=payload)
+            self.assertEqual(second.status_code, 429)
+            self.assertEqual(second.mimetype, "application/json")
+        finally:
+            app.config["TESTING"] = previous_testing
+            app_mod.GENERATE_RATE = previous_rate
+            app_mod._RATE_HITS.clear()
+
 
 class PageTests(unittest.TestCase):
     def setUp(self):
@@ -230,6 +329,9 @@ class PageTests(unittest.TestCase):
         self.assertIn("/static/blindcard-maker.svg", html)
         self.assertIn('rel="icon"', html)
         self.assertIn('href="/guide"', html)
+        self.assertEqual(res.headers.get("X-Content-Type-Options"), "nosniff")
+        self.assertEqual(res.headers.get("X-Frame-Options"), "SAMEORIGIN")
+        self.assertIn("default-src 'self'", res.headers.get("Content-Security-Policy", ""))
 
     def test_guide_page(self):
         res = self.client.get("/guide")
@@ -242,6 +344,9 @@ class PageTests(unittest.TestCase):
         self.assertIn("赤シート", html)
         self.assertIn("CSVの書き方", html)
         self.assertIn('href="/"', html)
+        self.assertIn("サーバーに保存しません", html)
+        self.assertIn("120ページ", html)
+        self.assertIn("IPAex明朝", html)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,12 @@ const COLOR_PRESETS = [
   { name: "紫", value: "#A855F7" },
 ];
 
+function apiUrl(path) {
+  const root = document.documentElement;
+  const prefix = (root && root.getAttribute("data-prefix")) || "";
+  return prefix + path;
+}
+
 function uid() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -160,7 +166,8 @@ createApp({
   setup() {
     const paperSize = ref("A6");
     const rowsPerPage = ref(5);
-    const fontSize = ref("md");
+    const questionFontSize = ref("md");
+    const answerFontSize = ref("md");
     const kanjiColor = ref("#FFA500");
     const notebookTitle = ref("");
     const numberStyle = ref("raw");
@@ -176,6 +183,13 @@ createApp({
     const fileInput = ref(null);
     const settingsDialog = ref(null);
     const previewDialog = ref(null);
+    const previewSrc = ref("");
+    const previewFrameVisible = ref(false);
+    const previewLoading = ref(false);
+    const previewError = ref("");
+    let previewObjectUrl = "";
+    let previewTimer = null;
+    let previewRequestId = 0;
     const clearDialog = ref(null);
     const alertState = ref(null);
     let alertTimer = null;
@@ -192,42 +206,13 @@ createApp({
 
     const estimatedPages = computed(() => countEstimatedPages(filledRows.value, rowsPerPage.value));
 
-    const previewRows = computed(() => {
-      const perPage = Number(rowsPerPage.value);
-      const mode = printMode.value;
-      const source = mode === "blank" ? [] : firstPageRows(filledRows.value, perPage);
-      const padded = source.map((row) => ({
-        ...row,
-        answer: mode === "full" ? row.answer : "",
-        note: mode === "full" ? row.note : "",
-      }));
-      while (padded.length < perPage) {
-        padded.push(emptyRow(""));
-      }
-      return padded;
-    });
-
-    const previewSection = computed(() => sectionLabel((filledRows.value[0] || {}).num));
-
-    const previewTitle = computed(() => {
-      const heading = String(notebookTitle.value || "").trim() || "BlindCardMaker";
-      return heading + " - NO." + previewSection.value;
-    });
-
     const colorHex = computed(() => String(kanjiColor.value || "#FFA500").toUpperCase());
-
-    const previewFontScale = computed(() => {
-      const found = FONT_SIZE_PRESETS.find((item) => item.id === fontSize.value);
-      return found ? found.scale : 1;
-    });
 
     const canExport = computed(() => printMode.value === "blank" || contentRows.value.length > 0);
 
-    function formatDisplayNum(row, index) {
-      if (numberStyle.value === "dot") {
-        return (index + 1) + ".";
-      }
-      return (row && row.num) || "";
+    function fontSizeLabel(id) {
+      const found = FONT_SIZE_PRESETS.find((item) => item.id === id);
+      return found ? found.name : "標準";
     }
 
     function showAlert(message, type) {
@@ -264,6 +249,90 @@ createApp({
       showPreview.value = true;
     }
 
+    function collectRows() {
+      return filledRows.value.map((row) => ({
+        num: String(row.num || "").trim(),
+        question: String(row.question || "").trim(),
+        answer: String(row.answer || "").trim(),
+        note: String(row.note || "").trim(),
+      }));
+    }
+
+    function pdfPayload() {
+      return {
+        paperSize: paperSize.value,
+        rowsPerPage: Number(rowsPerPage.value),
+        color: kanjiColor.value,
+        title: String(notebookTitle.value || "").trim(),
+        showCheckbox: !!showCheckbox.value,
+        numberStyle: numberStyle.value,
+        printMode: printMode.value,
+        questionFontSize: questionFontSize.value,
+        answerFontSize: answerFontSize.value,
+        data: collectRows(),
+      };
+    }
+
+    function revokePreviewUrl() {
+      previewFrameVisible.value = false;
+      if (previewObjectUrl) {
+        URL.revokeObjectURL(previewObjectUrl);
+        previewObjectUrl = "";
+      }
+      previewSrc.value = "";
+    }
+
+    async function loadPreviewPdf() {
+      if (!canExport.value) return;
+      const requestId = ++previewRequestId;
+      previewLoading.value = true;
+      previewError.value = "";
+      try {
+        const res = await fetch(apiUrl("/api/preview-pdf"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pdfPayload()),
+        });
+        if (!res.ok) {
+          let message = "プレビューの生成に失敗しました。";
+          try {
+            const err = await res.json();
+            if (err && err.error) message = err.error;
+          } catch (_) {
+            /* ignore */
+          }
+          throw new Error(message);
+        }
+        const blob = await res.blob();
+        if (requestId !== previewRequestId) return;
+        const nextUrl = URL.createObjectURL(blob);
+        const oldUrl = previewObjectUrl;
+        previewFrameVisible.value = false;
+        await nextTick();
+        if (requestId !== previewRequestId) {
+          URL.revokeObjectURL(nextUrl);
+          return;
+        }
+        previewObjectUrl = nextUrl;
+        previewSrc.value = nextUrl;
+        previewFrameVisible.value = true;
+        if (oldUrl) URL.revokeObjectURL(oldUrl);
+      } catch (err) {
+        if (requestId !== previewRequestId) return;
+        previewError.value = (err && err.message) || "プレビューの生成に失敗しました。";
+      } finally {
+        if (requestId === previewRequestId) {
+          previewLoading.value = false;
+        }
+      }
+    }
+
+    function schedulePreviewRefresh() {
+      if (!showPreview.value) return;
+      if (previewTimer) clearTimeout(previewTimer);
+      previewTimer = setTimeout(loadPreviewPdf, 280);
+    }
+
     function onGlobalKeydown(event) {
       if (event.key !== "Escape") return;
       showPreview.value = false;
@@ -276,15 +345,6 @@ createApp({
       fileName.value = "";
       hideAlert();
       showClearModal.value = false;
-    }
-
-    function collectRows() {
-      return filledRows.value.map((row) => ({
-        num: String(row.num || "").trim(),
-        question: String(row.question || "").trim(),
-        answer: String(row.answer || "").trim(),
-        note: String(row.note || "").trim(),
-      }));
     }
 
     function loadCsvText(text, name) {
@@ -383,32 +443,20 @@ createApp({
 
     async function generatePdf() {
       hideAlert();
-      const payloadRows = collectRows();
+      const payload = pdfPayload();
       // 白紙モードは罫線だけを書き出すので、データがなくても発行できる
-      if (printMode.value !== "blank" && !payloadRows.some((row) => row.question || row.answer)) {
+      if (printMode.value !== "blank" && !payload.data.some((row) => row.question || row.answer)) {
         showAlert("問題または解答が入力された行が必要です。", "error");
         return;
       }
-      if (payloadRows.length > 2000) {
-        showAlert("一度に出力できるのは2000件までです（現在" + payloadRows.length + "件）。", "error");
+      if (payload.data.length > 2000) {
+        showAlert("一度に出力できるのは2000件までです（現在" + payload.data.length + "件）。", "error");
         return;
       }
 
-      const payload = {
-        paperSize: paperSize.value,
-        rowsPerPage: Number(rowsPerPage.value),
-        color: kanjiColor.value,
-        title: String(notebookTitle.value || "").trim(),
-        showCheckbox: !!showCheckbox.value,
-        numberStyle: numberStyle.value,
-        printMode: printMode.value,
-        fontSize: fontSize.value,
-        data: payloadRows,
-      };
-
       generating.value = true;
       try {
-        const res = await fetch("/api/generate-pdf", {
+        const res = await fetch(apiUrl("/api/generate-pdf"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -458,8 +506,31 @@ createApp({
       if (open) {
         await nextTick();
         if (previewDialog.value) previewDialog.value.focus();
+        loadPreviewPdf();
+      } else {
+        if (previewTimer) clearTimeout(previewTimer);
+        previewRequestId += 1;
+        previewLoading.value = false;
+        previewError.value = "";
+        revokePreviewUrl();
       }
     });
+    watch(
+      [
+        paperSize,
+        rowsPerPage,
+        questionFontSize,
+        answerFontSize,
+        kanjiColor,
+        notebookTitle,
+        numberStyle,
+        printMode,
+        showCheckbox,
+        rows,
+      ],
+      schedulePreviewRefresh,
+      { deep: true }
+    );
     watch(showClearModal, async (open) => {
       if (open) {
         await nextTick();
@@ -472,6 +543,8 @@ createApp({
     });
     onUnmounted(() => {
       window.removeEventListener("keydown", onGlobalKeydown);
+      if (previewTimer) clearTimeout(previewTimer);
+      revokePreviewUrl();
     });
 
     return {
@@ -479,7 +552,8 @@ createApp({
       FONT_SIZE_PRESETS,
       paperSize,
       rowsPerPage,
-      fontSize,
+      questionFontSize,
+      answerFontSize,
       kanjiColor,
       notebookTitle,
       numberStyle,
@@ -496,17 +570,17 @@ createApp({
       fileInput,
       settingsDialog,
       previewDialog,
+      previewSrc,
+      previewFrameVisible,
+      previewLoading,
+      previewError,
       clearDialog,
       alertState,
       filledRows,
       contentRows,
       estimatedPages,
-      previewRows,
-      previewSection,
-      previewTitle,
-      previewFontScale,
       colorHex,
-      formatDisplayNum,
+      fontSizeLabel,
       addRow,
       addFirstRow,
       openPreview,

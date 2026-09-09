@@ -10,3 +10,5 @@ node_modules/
 REVIEW.md
 CSV/
 .rate-state/
+docs/deploy.md
+deploy.sh

@@ -4,7 +4,13 @@
 # 「満たすバージョンが無い」で止まらないよう、条件を分けています。
 flask>=3.0 ; python_version >= "3.8"
 flask>=2.2,<3 ; python_version < "3.8"
-reportlab>=4.0
+#
+# reportlab 4.4.2 以降は f文字列の = 指定（3.8以降の構文）を含むのに、
+# パッケージ側の申告は「3.7 以上」のままです。3.7 の環境では pip がそのまま
+# 入れてしまい、import した瞬間に SyntaxError で落ちます。
+# 3.7 では 4.3 系までに抑えます。
+reportlab>=4.0 ; python_version >= "3.8"
+reportlab>=4.0,<4.4 ; python_version < "3.8"
 
 # gunicorn は VPS などで常駐させる場合だけ必要です（CGI 配信では使いません）。
 #   python3 -m pip install gunicorn

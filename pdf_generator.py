@@ -46,6 +46,7 @@ FONT_NAME = CID_FONT_NAME
 COPYRIGHT_TEXT = "© BlindCardMaker"
 PLAIN_SECTION_KEY = ""
 ROW_TEXT_HEIGHT_RATIO = 0.9
+SPLIT_RATIO = 0.58
 
 _FONT_REGISTERED = False
 _STYLE_SEQ = 0
@@ -351,16 +352,18 @@ def generate_anki_pdf(
     width, height = PAGE_SIZES[paper_size]
     scale = width / A6[0]
 
-    left_margin = 34 * scale
-    right_margin = 23 * scale
-    top_margin = 34 * scale
-    bottom_margin = 25 * scale
-    header_height = 20 * scale
+    left_margin = 22 * scale
+    right_margin = 16 * scale
+    top_margin = 24 * scale
+    bottom_margin = 17 * scale
+    header_height = 18 * scale
 
     content_width = width - left_margin - right_margin
     content_height = height - top_margin - bottom_margin - header_height
     row_h = content_height / rows_per_page
-    split_x = left_margin + (content_width * 0.50)
+    # 解答は2〜4文字で収まることが多く、半々にすると右が大きく余る。
+    # 問題側を広げて折り返しを減らし、解答側は書き込める幅を残す。
+    split_x = left_margin + (content_width * SPLIT_RATIO)
 
     row_scale = max(0.75, min(row_h / 68.0, 2.2))
     q_mult = FONT_SIZE_MULTIPLIERS[question_font_size]
